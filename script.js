@@ -602,9 +602,76 @@ function initCustomAudioPlayer() {
   }
 
   function audioEnded() {
+    // Reset UI elements
     playIcon.style.display = 'block';
     pauseIcon.style.display = 'none';
-    progressFilled.style.width = '0%';
+
+    // Automatically advance to next ayah
+    advanceToNextAyah();
+  }
+
+  // Function to advance to the next ayah
+  function advanceToNextAyah() {
+    const surahSelect = document.getElementById('surah-select');
+    const ayahSelect = document.getElementById('ayah-select');
+
+    if (!surahSelect || !ayahSelect) return;
+
+    const currentSurahNumber = parseInt(surahSelect.value);
+    const currentAyahNumber = parseInt(ayahSelect.value);
+    const currentSurah = quranData.find(surah => surah.number === currentSurahNumber);
+
+    if (!currentSurah) return;
+
+    // Check if there are more ayahs in the current surah
+    if (currentAyahNumber < currentSurah.ayahCount) {
+      // Move to next ayah in current surah
+      ayahSelect.value = String(currentAyahNumber + 1);
+    } else {
+      // We're at the end of the current surah
+      // Check if there's a next surah available
+      if (currentSurahNumber < quranData.length) {
+        // Move to first ayah of next surah
+        surahSelect.value = String(currentSurahNumber + 1);
+
+        // Trigger surah change event to update ayah dropdown
+        const surahChangeEvent = new Event('change', { bubbles: true });
+        surahSelect.dispatchEvent(surahChangeEvent);
+
+        // After ayah dropdown is updated, select the first ayah
+        setTimeout(() => {
+          ayahSelect.selectedIndex = 1; // First ayah (index 0 is the placeholder)
+        }, 100);
+      } else {
+        // We're at the end of the Quran
+        console.log("Reached the end of the Quran");
+        return;
+      }
+    }
+
+    // Trigger the change event to load the next verse
+    const changeEvent = new Event('change', { bubbles: true });
+    ayahSelect.dispatchEvent(changeEvent);
+
+    // Auto-play the next ayah after a short delay to ensure audio is loaded
+    setTimeout(() => {
+      const audioPlayer = document.getElementById('ayah-audio-player');
+      if (audioPlayer) {
+        audioPlayer.play()
+          .then(() => {
+            // Update UI to show pause icon when playing
+            const playIcon = document.querySelector('.play-icon');
+            const pauseIcon = document.querySelector('.pause-icon');
+            if (playIcon && pauseIcon) {
+              playIcon.style.display = 'none';
+              pauseIcon.style.display = 'block';
+            }
+          })
+          .catch(error => {
+            console.error('Auto-play failed:', error);
+          });
+      }
+    }, 300); // Small delay to ensure audio source is updated
   }
 
   function formatTime(seconds) {
