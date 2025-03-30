@@ -118,73 +118,195 @@ const quranData = [
 
 // DOM elements
 document.addEventListener('DOMContentLoaded', function () {
+  // Initialize particles.js
+  if (typeof window.particlesJS !== 'undefined') {
+    window.particlesJS.load('particles-js', 'particles.json', function () {
+      console.log('Particles.js loaded successfully');
+    });
+  }
+
+  // Get DOM elements
   const surahSelect = document.getElementById('surah-select');
   const ayahSelect = document.getElementById('ayah-select');
   const referenceText = document.getElementById('selected-reference-text');
+  const quranSelector = document.querySelector('.quran-selector');
+  const glowElements = document.querySelectorAll('.ambient-glow');
 
-  // Populate Surah dropdown
-  quranData.forEach(surah => {
-    const option = document.createElement('option');
-    option.value = surah.number;
-    option.textContent = `${surah.number}. ${surah.name}`;
-    surahSelect.appendChild(option);
-  });
+  // Populate Surah dropdown with a smooth loading effect
+  setTimeout(() => {
+    populateSurahDropdown();
+  }, 500);
+
+  function populateSurahDropdown() {
+    let delay = 0;
+
+    if (surahSelect) {
+      quranData.forEach((surah, index) => {
+        setTimeout(() => {
+          const option = document.createElement('option');
+          option.value = String(surah.number);
+          option.textContent = `${surah.number}. ${surah.name}`;
+          surahSelect.appendChild(option);
+
+          // When all items are loaded, add a subtle fade-in effect
+          if (index === quranData.length - 1) {
+            surahSelect.classList.add('loaded');
+          }
+        }, delay);
+
+        // Add a small delay for each item for a smooth cascading effect
+        delay += 5;
+      });
+    }
+  }
 
   // Handle Surah selection change
-  surahSelect.addEventListener('change', function () {
-    const selectedSurahNumber = parseInt(this.value);
+  if (surahSelect) {
+    surahSelect.addEventListener('change', function () {
+      const selectedSurahNumber = parseInt(this.value);
 
-    // Clear and disable Ayah dropdown if no Surah is selected
-    if (!selectedSurahNumber) {
-      ayahSelect.innerHTML = '<option value="">--Please select a Surah first--</option>';
-      ayahSelect.disabled = true;
-      referenceText.textContent = 'Please select a Surah and Ayah to see the reference.';
-      return;
-    }
+      // Add subtle animation effect to the container
+      if (quranSelector) {
+        quranSelector.classList.add('changing');
+      }
 
-    // Find the selected Surah data
-    const selectedSurah = quranData.find(surah => surah.number === selectedSurahNumber);
+      // Update glow elements position randomly
+      updateGlowElements();
 
-    // Enable and populate Ayah dropdown
-    ayahSelect.innerHTML = '<option value="">--Please select an Ayah--</option>';
-    for (let i = 1; i <= selectedSurah.ayahCount; i++) {
-      const option = document.createElement('option');
-      option.value = i;
-      option.textContent = `Ayah ${i}`;
-      ayahSelect.appendChild(option);
-    }
-    ayahSelect.disabled = false;
+      // Clear and disable Ayah dropdown if no Surah is selected
+      if (!selectedSurahNumber) {
+        if (ayahSelect) {
+          ayahSelect.innerHTML = '<option value="">--Please select a Surah first--</option>';
+          ayahSelect.disabled = true;
+        }
+        if (referenceText) {
+          referenceText.textContent = 'Please select a Surah and Ayah to see the reference.';
+        }
+        if (quranSelector) {
+          quranSelector.classList.remove('changing');
+        }
+        return;
+      }
 
-    // Update reference text
-    if (ayahSelect.value) {
-      updateReferenceText(selectedSurah, ayahSelect.value);
-    } else {
-      referenceText.textContent = `Selected Surah: ${selectedSurah.name}. Please select an Ayah.`;
-    }
-  });
+      // Find the selected Surah data
+      const selectedSurah = quranData.find(surah => surah.number === selectedSurahNumber);
+
+      // Add loading animation
+      if (referenceText) {
+        referenceText.innerHTML = 'Loading <span class="loading-dots"><span></span><span></span><span></span></span>';
+      }
+
+      // Simulate loading delay for a smoother experience
+      setTimeout(() => {
+        if (ayahSelect && selectedSurah) {
+          // Enable and populate Ayah dropdown
+          ayahSelect.innerHTML = '<option value="">--Please select an Ayah--</option>';
+          for (let i = 1; i <= selectedSurah.ayahCount; i++) {
+            const option = document.createElement('option');
+            option.value = String(i);
+            option.textContent = `Ayah ${i}`;
+            ayahSelect.appendChild(option);
+          }
+
+          ayahSelect.disabled = false;
+
+          // Update reference text
+          if (ayahSelect.value && referenceText) {
+            updateReferenceText(selectedSurah, ayahSelect.value);
+          } else if (referenceText) {
+            referenceText.textContent = `Selected Surah: ${selectedSurah.name}. Please select an Ayah.`;
+          }
+        }
+
+        // Remove animation class
+        if (quranSelector) {
+          quranSelector.classList.remove('changing');
+        }
+      }, 600);
+    });
+  }
 
   // Handle Ayah selection change
-  ayahSelect.addEventListener('change', function () {
-    const selectedSurahNumber = parseInt(surahSelect.value);
-    const selectedAyahNumber = parseInt(this.value);
+  if (ayahSelect) {
+    ayahSelect.addEventListener('change', function () {
+      if (!surahSelect) return;
 
-    if (!selectedSurahNumber || !selectedAyahNumber) {
-      if (selectedSurahNumber) {
-        const selectedSurah = quranData.find(surah => surah.number === selectedSurahNumber);
-        referenceText.textContent = `Selected Surah: ${selectedSurah.name}. Please select an Ayah.`;
-      } else {
-        referenceText.textContent = 'Please select a Surah and Ayah to see the reference.';
+      const selectedSurahNumber = parseInt(surahSelect.value);
+      const selectedAyahNumber = parseInt(this.value);
+
+      // Add subtle animation
+      if (quranSelector) {
+        quranSelector.classList.add('changing');
       }
-      return;
-    }
 
-    // Find the selected Surah data
-    const selectedSurah = quranData.find(surah => surah.number === selectedSurahNumber);
-    updateReferenceText(selectedSurah, selectedAyahNumber);
-  });
+      // Update glow positions
+      updateGlowElements();
+
+      // Show loading animation
+      if (selectedAyahNumber && referenceText) {
+        referenceText.innerHTML = 'Loading <span class="loading-dots"><span></span><span></span><span></span></span>';
+      }
+
+      setTimeout(() => {
+        if (!selectedSurahNumber || !selectedAyahNumber) {
+          if (selectedSurahNumber && referenceText) {
+            const selectedSurah = quranData.find(surah => surah.number === selectedSurahNumber);
+            if (selectedSurah) {
+              referenceText.textContent = `Selected Surah: ${selectedSurah.name}. Please select an Ayah.`;
+            }
+          } else if (referenceText) {
+            referenceText.textContent = 'Please select a Surah and Ayah to see the reference.';
+          }
+          if (quranSelector) {
+            quranSelector.classList.remove('changing');
+          }
+          return;
+        }
+
+        // Find the selected Surah data
+        const selectedSurah = quranData.find(surah => surah.number === selectedSurahNumber);
+        if (selectedSurah && referenceText) {
+          updateReferenceText(selectedSurah, String(selectedAyahNumber));
+        }
+
+        // Remove animation class
+        if (quranSelector) {
+          quranSelector.classList.remove('changing');
+        }
+      }, 400);
+    });
+  }
 
   // Helper function to update reference text
   function updateReferenceText(surah, ayahNumber) {
-    referenceText.textContent = `Quran ${surah.number}:${ayahNumber} - ${surah.name}, Ayah ${ayahNumber}`;
+    if (referenceText) {
+      referenceText.textContent = `Quran ${surah.number}:${ayahNumber} - ${surah.name}, Ayah ${ayahNumber}`;
+    }
   }
+
+  // Helper function to update glow elements
+  function updateGlowElements() {
+    glowElements.forEach(el => {
+      // Generate random positions for ambient glow elements
+      const randomX = Math.floor(Math.random() * 300) - 150;
+      const randomY = Math.floor(Math.random() * 300) - 150;
+
+      el.style.transform = `translate(${randomX}px, ${randomY}px)`;
+    });
+  }
+
+  // Add mousemove effect for interactive background
+  document.addEventListener('mousemove', function (e) {
+    const mouseX = e.clientX / window.innerWidth;
+    const mouseY = e.clientY / window.innerHeight;
+
+    // Subtle parallax effect on glow elements
+    glowElements.forEach((el, index) => {
+      const depth = index + 1;
+      const moveX = (mouseX - 0.5) * depth * 30;
+      const moveY = (mouseY - 0.5) * depth * 30;
+
+      el.style.transform = `translate(${moveX}px, ${moveY}px)`;
+    });
+  });
 }); 
