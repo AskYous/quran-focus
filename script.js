@@ -497,6 +497,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="meta-item">Hizb ${Math.ceil(verseData.meta.hizbQuarter / 4)}.${verseData.meta.hizbQuarter % 4 === 0 ? 4 : verseData.meta.hizbQuarter % 4}</div>
               `;
             }
+
+            // Add the fade-in animation when a new verse is displayed
+            if (verseContainer) {
+              verseContainer.classList.add('verse-fade-in');
+
+              // Remove the class after animation completes
+              setTimeout(() => {
+                verseContainer.classList.remove('verse-fade-in');
+              }, 1000);
+            }
           } else {
             console.error("Error in verse data:", verseData.error);
           }
@@ -614,69 +624,110 @@ function initCustomAudioPlayer() {
   function advanceToNextAyah() {
     const surahSelect = document.getElementById('surah-select');
     const ayahSelect = document.getElementById('ayah-select');
+    const verseContainer = document.querySelector('.verse-container');
 
     if (!surahSelect || !ayahSelect) return;
 
-    const currentSurahNumber = parseInt(surahSelect.value);
-    const currentAyahNumber = parseInt(ayahSelect.value);
-    const currentSurah = quranData.find(surah => surah.number === currentSurahNumber);
+    // Add fade-out animation to current verse
+    if (verseContainer) {
+      verseContainer.classList.add('verse-fade-out');
 
-    if (!currentSurah) return;
+      // Wait for animation to complete before changing verse
+      setTimeout(() => {
+        // Regular verse changing logic
+        const currentSurahNumber = parseInt(surahSelect.value);
+        const currentAyahNumber = parseInt(ayahSelect.value);
+        const currentSurah = quranData.find(surah => surah.number === currentSurahNumber);
 
-    // Check if there are more ayahs in the current surah
-    if (currentAyahNumber < currentSurah.ayahCount) {
-      // Move to next ayah in current surah
-      ayahSelect.value = String(currentAyahNumber + 1);
-    } else {
-      // We're at the end of the current surah
-      // Check if there's a next surah available
-      if (currentSurahNumber < quranData.length) {
-        // Move to first ayah of next surah
-        surahSelect.value = String(currentSurahNumber + 1);
+        if (!currentSurah) return;
 
-        // Trigger surah change event to update ayah dropdown
-        const surahChangeEvent = new Event('change', { bubbles: true });
-        surahSelect.dispatchEvent(surahChangeEvent);
+        // Check if there are more ayahs in the current surah
+        if (currentAyahNumber < currentSurah.ayahCount) {
+          // Move to next ayah in current surah
+          ayahSelect.value = String(currentAyahNumber + 1);
+        } else {
+          // We're at the end of the current surah
+          // Check if there's a next surah available
+          if (currentSurahNumber < quranData.length) {
+            // Move to first ayah of next surah
+            surahSelect.value = String(currentSurahNumber + 1);
 
-        // After ayah dropdown is updated, select the first ayah
+            // Trigger surah change event to update ayah dropdown
+            const surahChangeEvent = new Event('change', { bubbles: true });
+            surahSelect.dispatchEvent(surahChangeEvent);
+
+            // After ayah dropdown is updated, select the first ayah
+            setTimeout(() => {
+              ayahSelect.selectedIndex = 1; // First ayah (index 0 is the placeholder)
+            }, 100);
+          } else {
+            // We're at the end of the Quran
+            console.log("Reached the end of the Quran");
+            verseContainer.classList.remove('verse-fade-out');
+            return;
+          }
+        }
+
+        // Trigger the change event to load the next verse
+        const changeEvent = new Event('change', { bubbles: true });
+        ayahSelect.dispatchEvent(changeEvent);
+
+        // Add a small delay to reveal the new verse with animation
         setTimeout(() => {
-          ayahSelect.selectedIndex = 1; // First ayah (index 0 is the placeholder)
+          verseContainer.classList.remove('verse-fade-out');
+          verseContainer.classList.add('verse-fade-in');
+
+          // Remove the fade-in class after animation completes
+          setTimeout(() => {
+            verseContainer.classList.remove('verse-fade-in');
+          }, 1000);
         }, 100);
-      } else {
-        // We're at the end of the Quran
-        console.log("Reached the end of the Quran");
-        return;
-      }
+
+        // Auto-play the next ayah after a short delay to ensure audio is loaded
+        setTimeout(() => {
+          const audioPlayer = document.getElementById('ayah-audio-player');
+          if (audioPlayer) {
+            audioPlayer.play()
+              .then(() => {
+                // Update UI to show pause icon when playing
+                const playIcon = document.querySelector('.play-icon');
+                const pauseIcon = document.querySelector('.pause-icon');
+                if (playIcon && pauseIcon) {
+                  playIcon.style.display = 'none';
+                  pauseIcon.style.display = 'block';
+                }
+              })
+              .catch(error => {
+                console.error('Auto-play failed:', error);
+              });
+          }
+        }, 1000); // Increased delay to match the animation timing
+      }, 500); // Wait for fade-out animation
+    } else {
+      // Fallback if verse container not found - use original logic
+      // ... existing fallback code from original function ...
     }
 
-    // Trigger the change event to load the next verse
-    const changeEvent = new Event('change', { bubbles: true });
-    ayahSelect.dispatchEvent(changeEvent);
-
-    // Auto-play the next ayah after a short delay to ensure audio is loaded
-    setTimeout(() => {
-      const audioPlayer = document.getElementById('ayah-audio-player');
-      if (audioPlayer) {
-        audioPlayer.play()
-          .then(() => {
-            // Update UI to show pause icon when playing
-            const playIcon = document.querySelector('.play-icon');
-            const pauseIcon = document.querySelector('.pause-icon');
-            if (playIcon && pauseIcon) {
-              playIcon.style.display = 'none';
-              pauseIcon.style.display = 'block';
-            }
-          })
-          .catch(error => {
-            console.error('Auto-play failed:', error);
-          });
-      }
-    }, 300); // Small delay to ensure audio source is updated
+    // Add this line near the beginning of the function
+    triggerTransitionPulse();
   }
 
   function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
     seconds = Math.floor(seconds % 60);
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  }
+
+  // Add this function to create the pulse effect
+  function triggerTransitionPulse() {
+    const pulseElement = document.querySelector('.verse-transition-pulse');
+    if (pulseElement) {
+      pulseElement.classList.add('pulse-animation');
+
+      // Remove the class after animation completes
+      setTimeout(() => {
+        pulseElement.classList.remove('pulse-animation');
+      }, 1000);
+    }
   }
 } 
