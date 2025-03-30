@@ -331,26 +331,101 @@ body, html {
   }
 }
 
-/* Audio player styling */
-.audio-container {
+/* Custom minimal audio player styling */
+.custom-audio-player {
     width: 100%;
-    margin: 15px 0;
+    max-width: 380px;
+    margin: 0 auto;
+    background: rgba(15, 20, 40, 0.6);
+    border-radius: 20px;
+    padding: 8px 16px;
     display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(78, 110, 242, 0.25);
+    border: 1px solid rgba(78, 110, 242, 0.15);
+    transition: all 0.3s ease;
+}
+
+.custom-audio-player:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5), 0 0 25px rgba(78, 110, 242, 0.4);
+    transform: translateY(-2px);
+}
+
+.play-pause-btn, .volume-btn {
+    background: none;
+    border: none;
+    color: rgba(190, 215, 255, 0.95);
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
     justify-content: center;
 }
 
-.audio-container audio {
-    width: 100%;
-    max-width: 350px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    opacity: 0.9;
-    transition: opacity 0.3s ease;
+.play-pause-btn:hover, .volume-btn:hover {
+    background: rgba(78, 110, 242, 0.2);
+    transform: scale(1.1);
 }
 
-.audio-container audio:focus,
-.audio-container audio:hover {
-    opacity: 1;
-    outline: none;
+.play-pause-btn svg, .volume-btn svg {
+    width: 22px;
+    height: 22px;
+    fill: rgba(190, 215, 255, 0.95);
+}
+
+.pause-icon {
+    display: none;
+}
+
+.progress-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.time {
+    font-size: 12px;
+    color: rgba(190, 215, 255, 0.95);
+    min-width: 35px;
+    text-align: center;
+}
+
+.progress-bar-wrapper {
+    flex: 1;
+    cursor: pointer;
+}
+
+.progress-bar {
+    height: 4px;
+    background: rgba(78, 110, 242, 0.3);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-filled {
+    background: rgba(78, 110, 242, 0.85);
+    height: 100%;
+    width: 0%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    border-radius: 4px;
+    box-shadow: 0 0 8px rgba(78, 110, 242, 0.6);
+    transition: width 0.1s ease-in-out;
+}
+
+.volume-wave, .volume-wave-outer {
+    opacity: 0.7;
+}
+
+/* Hide native audio element */
+#ayah-audio-player {
+    display: none;
 } 

@@ -178,6 +178,15 @@ function playAyahAudio(ayahNumber) {
       // Update the audio element's src attribute if element exists
       if (audioPlayer) {
         audioPlayer.setAttribute('src', audioUrl);
+
+        // Reset the play/pause button to show play icon
+        const playIcon = document.querySelector('.play-icon');
+        const pauseIcon = document.querySelector('.pause-icon');
+        if (playIcon && pauseIcon) {
+          playIcon.style.display = 'block';
+          pauseIcon.style.display = 'none';
+        }
+
         console.log(`Set audio source to: ${audioUrl}`);
       } else {
         console.error('Audio player element not found');
@@ -530,4 +539,77 @@ document.addEventListener('DOMContentLoaded', function () {
       el.style.transform = `translate(${moveX}px, ${moveY}px)`;
     });
   });
-}); 
+
+  // Initialize custom audio player functionality
+  initCustomAudioPlayer();
+});
+
+function initCustomAudioPlayer() {
+  const audioElement = document.getElementById('ayah-audio-player');
+  const customPlayer = document.getElementById('custom-audio-player');
+  const playPauseBtn = document.getElementById('play-pause-btn');
+  const volumeBtn = document.getElementById('volume-btn');
+  const progressBar = customPlayer.querySelector('.progress-bar');
+  const progressFilled = customPlayer.querySelector('.progress-filled');
+  const currentTime = customPlayer.querySelector('.current-time');
+  const durationTime = customPlayer.querySelector('.duration');
+  const playIcon = customPlayer.querySelector('.play-icon');
+  const pauseIcon = customPlayer.querySelector('.pause-icon');
+
+  // Play/Pause functionality
+  playPauseBtn.addEventListener('click', togglePlay);
+
+  // Update progress bar as song plays
+  audioElement.addEventListener('timeupdate', updateProgress);
+
+  // Click on progress bar to skip
+  progressBar.addEventListener('click', skipTo);
+
+  // Audio duration loaded
+  audioElement.addEventListener('loadedmetadata', setDuration);
+
+  // Handle audio ending
+  audioElement.addEventListener('ended', audioEnded);
+
+  function togglePlay() {
+    if (audioElement.paused) {
+      audioElement.play();
+      playIcon.style.display = 'none';
+      pauseIcon.style.display = 'block';
+    } else {
+      audioElement.pause();
+      playIcon.style.display = 'block';
+      pauseIcon.style.display = 'none';
+    }
+  }
+
+  function updateProgress() {
+    const percent = (audioElement.currentTime / audioElement.duration) * 100;
+    progressFilled.style.width = `${percent}%`;
+
+    // Update current time
+    currentTime.textContent = formatTime(audioElement.currentTime);
+  }
+
+  function skipTo(e) {
+    const rect = progressBar.getBoundingClientRect();
+    const pos = (e.clientX - rect.left) / rect.width;
+    audioElement.currentTime = pos * audioElement.duration;
+  }
+
+  function setDuration() {
+    durationTime.textContent = formatTime(audioElement.duration);
+  }
+
+  function audioEnded() {
+    playIcon.style.display = 'block';
+    pauseIcon.style.display = 'none';
+    progressFilled.style.width = '0%';
+  }
+
+  function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    seconds = Math.floor(seconds % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  }
+} 
