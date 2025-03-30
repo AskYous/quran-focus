@@ -329,4 +329,28 @@ body, html {
     font-size: 1.5rem;
     line-height: 2rem;
   }
+}
+
+/* Audio player styling */
+.audio-container {
+    width: 100%;
+    margin: 15px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.audio-container audio {
+    width: 100%;
+    max-width: 350px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    opacity: 0.9;
+    transition: opacity 0.3s ease;
+}
+
+.audio-container audio:focus,
+.audio-container audio:hover {
+    opacity: 1;
+    outline: none;
 } 

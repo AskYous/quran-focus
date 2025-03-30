@@ -116,6 +116,15 @@ const quranData = [
   { number: 114, name: "An-Nas (Mankind)", ayahCount: 6 }
 ];
 
+// Reciter configuration - can be easily extended with more reciters
+const RECITER = {
+  shuraym: {
+    id: "ar.saoodshuraym",
+    name: "Sa'ud ash-Shuraym",
+    bitrate: 64  // Bitrate to use for the audio (64, 128, etc.)
+  }
+};
+
 // Function to fetch Quran verses from API
 async function fetchQuranVerse(surahNumber, ayahNumber) {
   console.log(`Fetching verse data for Surah ${surahNumber}, Ayah ${ayahNumber}`);
@@ -148,6 +157,54 @@ async function fetchQuranVerse(surahNumber, ayahNumber) {
     console.error("Error in fetchQuranVerse:", error);
     return { error: error.message };
   }
+}
+
+// Function to play the ayah audio using Shuraym's recitation
+function playAyahAudio(ayahNumber) {
+  try {
+    // Calculate the global ayah number (required for the CDN)
+    let globalAyahNumber = parseInt(ayahNumber);
+
+    // If there's a valid ayah number to play
+    if (globalAyahNumber) {
+      console.log(`Setting up audio for ayah number ${globalAyahNumber}`);
+
+      // Construct the audio URL using the AlQuran.Cloud CDN
+      const audioUrl = `https://cdn.islamic.network/quran/audio/${RECITER.shuraym.bitrate}/${RECITER.shuraym.id}/${globalAyahNumber}.mp3`;
+
+      // Get the audio element
+      const audioPlayer = document.getElementById('ayah-audio-player');
+
+      // Update the audio element's src attribute if element exists
+      if (audioPlayer) {
+        audioPlayer.setAttribute('src', audioUrl);
+        console.log(`Set audio source to: ${audioUrl}`);
+      } else {
+        console.error('Audio player element not found');
+      }
+    }
+  } catch (error) {
+    console.error('Error in playAyahAudio:', error);
+  }
+}
+
+// Function to calculate global ayah number from surah and ayah
+function calculateGlobalAyahNumber(surahNumber, ayahNumber) {
+  surahNumber = parseInt(surahNumber);
+  ayahNumber = parseInt(ayahNumber);
+
+  // Initialize the counter with the ayah number
+  let globalAyahNumber = ayahNumber;
+
+  // Add all ayahs from previous surahs
+  for (let i = 1; i < surahNumber; i++) {
+    const surah = quranData.find(s => s.number === i);
+    if (surah) {
+      globalAyahNumber += surah.ayahCount;
+    }
+  }
+
+  return globalAyahNumber;
 }
 
 // Function to save selections to local storage
@@ -272,8 +329,14 @@ document.addEventListener('DOMContentLoaded', function () {
             ayahSelect.value = "1";
           }
 
-          // Trigger the change event to load the verse
+          // Trigger the change event to load the verse and play audio
           ayahSelect.dispatchEvent(new Event('change', { bubbles: true }));
+
+          // Also calculate and play the audio for the initially loaded Ayah
+          if (savedSelections.surah && savedSelections.ayah) {
+            const globalAyahNumber = calculateGlobalAyahNumber(savedSelections.surah, savedSelections.ayah);
+            playAyahAudio(globalAyahNumber);
+          }
         }
       }, 700); // Wait for Ayah dropdown to be populated
     }
@@ -374,6 +437,9 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
+      // Save the selection to local storage
+      saveSelectionsToLocalStorage(selectedSurahNumber, selectedAyahNumber);
+
       // Ensure the verse container is visible
       if (verseContainer) {
         verseContainer.style.display = 'block';
@@ -390,6 +456,12 @@ document.addEventListener('DOMContentLoaded', function () {
       if (translationElement) {
         translationElement.textContent = 'Loading translation...';
       }
+
+      // Calculate the global ayah number for audio playback
+      const globalAyahNumber = calculateGlobalAyahNumber(selectedSurahNumber, selectedAyahNumber);
+
+      // Play the audio for the selected ayah
+      playAyahAudio(globalAyahNumber);
 
       // Make the API call to fetch verse data
       fetchQuranVerse(selectedSurahNumber, selectedAyahNumber)
