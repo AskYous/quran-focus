@@ -1,13 +1,41 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quran Surah and Ayah Selector</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="max-w-2xl mx-auto p-5">
+        <div class="bg-white p-8 rounded-lg shadow-md">
+            <h1 class="text-2xl font-bold text-center text-gray-800 mb-8">Quran Surah and Ayah Selector</h1>
+            
+            <div class="mb-6">
+                <label for="surah-select" class="block text-sm font-medium text-gray-700 mb-2">Select Surah:</label>
+                <select id="surah-select" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">--Please select a Surah--</option>
+                    <!-- Surah options will be populated by JavaScript -->
+                </select>
+            </div>
+            
+            <div class="mb-6">
+                <label for="ayah-select" class="block text-sm font-medium text-gray-700 mb-2">Select Ayah:</label>
+                <select id="ayah-select" disabled class="w-full p-3 border border-gray-300 rounded-md bg-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">--Please select a Surah first--</option>
+                    <!-- Ayah options will be populated by JavaScript based on selected Surah -->
+                </select>
+            </div>
+            
+            <div class="mt-8 p-4 bg-gray-50 border-l-4 border-blue-500 rounded-md">
+                <h2 class="text-xl font-medium text-gray-800 mb-2">Selected Reference</h2>
+                <p id="selected-reference-text" class="text-gray-700">Please select a Surah and Ayah to see the reference.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- External JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html> 
