@@ -116,7 +116,66 @@ const quranData = [
   { number: 114, name: "An-Nas (Mankind)", ayahCount: 6 }
 ];
 
-// DOM elements
+// Function to fetch Quran verses from API
+async function fetchQuranVerse(surahNumber, ayahNumber) {
+  console.log(`Fetching verse data for Surah ${surahNumber}, Ayah ${ayahNumber}`);
+
+  try {
+    const response = await fetch(`https://api.alquran.cloud/v1/ayah/${surahNumber}:${ayahNumber}/editions/quran-simple,en.sahih`);
+    console.log("API response received:", response);
+
+    if (!response.ok) {
+      throw new Error(`API returned status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("API data parsed:", data);
+
+    // Extract the verse data
+    const verseData = {
+      arabic: data.data[0]?.text || 'Arabic text not available',
+      english: data.data[1]?.text || 'Translation not available',
+      meta: {
+        juz: data.data[0]?.juz || 0,
+        page: data.data[0]?.page || 0,
+        hizbQuarter: data.data[0]?.hizbQuarter || 0
+      }
+    };
+
+    console.log("Extracted verse data:", verseData);
+    return verseData;
+  } catch (error) {
+    console.error("Error in fetchQuranVerse:", error);
+    return { error: error.message };
+  }
+}
+
+// Function to save selections to local storage
+function saveSelectionsToLocalStorage(surahNumber, ayahNumber) {
+  try {
+    localStorage.setItem('quranMeditationSpace_surah', surahNumber);
+    localStorage.setItem('quranMeditationSpace_ayah', ayahNumber);
+    console.log('Selections saved to local storage:', { surah: surahNumber, ayah: ayahNumber });
+  } catch (error) {
+    console.error('Error saving to local storage:', error);
+  }
+}
+
+// Function to load selections from local storage
+function loadSelectionsFromLocalStorage() {
+  try {
+    const savedSurah = localStorage.getItem('quranMeditationSpace_surah');
+    const savedAyah = localStorage.getItem('quranMeditationSpace_ayah');
+    return {
+      surah: savedSurah ? savedSurah : "1",
+      ayah: savedAyah ? savedAyah : "1"
+    };
+  } catch (error) {
+    console.error('Error loading from local storage:', error);
+    return { surah: "1", ayah: "1" }; // Default values
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   // Initialize particles.js
   if (typeof window.particlesJS !== 'undefined') {
@@ -131,10 +190,28 @@ document.addEventListener('DOMContentLoaded', function () {
   const referenceText = document.getElementById('selected-reference-text');
   const quranSelector = document.querySelector('.quran-selector');
   const glowElements = document.querySelectorAll('.ambient-glow');
+  const verseContainer = document.getElementById('verse-container');
+  const arabicTextElement = document.getElementById('arabic-text');
+  const translationElement = document.getElementById('translation-text');
+  const verseMetaElement = document.getElementById('verse-meta');
+
+  console.log("DOM elements found:", {
+    surahSelect: !!surahSelect,
+    ayahSelect: !!ayahSelect,
+    verseContainer: !!verseContainer,
+    arabicTextElement: !!arabicTextElement,
+    translationElement: !!translationElement,
+    verseMetaElement: !!verseMetaElement
+  });
 
   // Populate Surah dropdown with a smooth loading effect
   setTimeout(() => {
     populateSurahDropdown();
+
+    // Set default values after dropdown is populated
+    setTimeout(() => {
+      setDefaultSelections();
+    }, quranData.length * 5 + 100); // Wait until all options are loaded
   }, 500);
 
   function populateSurahDropdown() {
@@ -157,6 +234,48 @@ document.addEventListener('DOMContentLoaded', function () {
         // Add a small delay for each item for a smooth cascading effect
         delay += 5;
       });
+    }
+  }
+
+  // Function to set default values for Surah and Ayah
+  function setDefaultSelections() {
+    // Load from local storage or use defaults
+    const savedSelections = loadSelectionsFromLocalStorage();
+
+    // Default to Surah Al-Fatihah (1) or saved selection
+    if (surahSelect && surahSelect.options.length > 1) {
+      // Select the Surah from local storage or default to Al-Fatihah
+      surahSelect.value = savedSelections.surah;
+
+      // Trigger the change event to populate Ayah dropdown
+      const changeEvent = new Event('change', { bubbles: true });
+      surahSelect.dispatchEvent(changeEvent);
+
+      // Set a timeout to select the Ayah after Ayah dropdown is populated
+      setTimeout(() => {
+        if (ayahSelect && ayahSelect.options.length > 1) {
+          // Try to set ayah from local storage, but check if it's in range
+          const surahNumber = parseInt(savedSelections.surah);
+          const selectedSurah = quranData.find(surah => surah.number === surahNumber);
+
+          if (selectedSurah) {
+            const savedAyahNumber = parseInt(savedSelections.ayah);
+            // Make sure the saved ayah is within range for this surah
+            if (savedAyahNumber > 0 && savedAyahNumber <= selectedSurah.ayahCount) {
+              ayahSelect.value = savedSelections.ayah;
+            } else {
+              // If out of range, default to the first ayah
+              ayahSelect.value = "1";
+            }
+          } else {
+            // If surah not found, default to the first ayah
+            ayahSelect.value = "1";
+          }
+
+          // Trigger the change event to load the verse
+          ayahSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }, 700); // Wait for Ayah dropdown to be populated
     }
   }
 
@@ -185,8 +304,16 @@ document.addEventListener('DOMContentLoaded', function () {
         if (quranSelector) {
           quranSelector.classList.remove('changing');
         }
+
+        // Hide verse container if no surah selected
+        if (verseContainer) {
+          verseContainer.classList.remove('visible');
+        }
         return;
       }
+
+      // Save selection to local storage (without ayah yet)
+      saveSelectionsToLocalStorage(selectedSurahNumber, "1");
 
       // Find the selected Surah data
       const selectedSurah = quranData.find(surah => surah.number === selectedSurahNumber);
@@ -210,11 +337,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
           ayahSelect.disabled = false;
 
-          // Update reference text
-          if (ayahSelect.value && referenceText) {
-            updateReferenceText(selectedSurah, ayahSelect.value);
-          } else if (referenceText) {
-            referenceText.textContent = `Selected Surah: ${selectedSurah.name}. Please select an Ayah.`;
+          // Automatically select the first Ayah (index 1 since we have an empty option at index 0)
+          if (ayahSelect.options.length > 1) {
+            ayahSelect.selectedIndex = 1; // Select the first Ayah (option at index 1)
+
+            // Manually trigger the change event to load the verse
+            const changeEvent = new Event('change', { bubbles: true });
+            ayahSelect.dispatchEvent(changeEvent);
+          } else {
+            // If no Ayahs were populated, update reference text accordingly
+            if (referenceText) {
+              referenceText.textContent = `Selected Surah: ${selectedSurah.name}. Please select an Ayah.`;
+            }
           }
         }
 
@@ -229,51 +363,66 @@ document.addEventListener('DOMContentLoaded', function () {
   // Handle Ayah selection change
   if (ayahSelect) {
     ayahSelect.addEventListener('change', function () {
-      if (!surahSelect) return;
+      console.log("Ayah selection changed");
+      const selectedSurahNumber = surahSelect.value;
+      const selectedAyahNumber = ayahSelect.value;
 
-      const selectedSurahNumber = parseInt(surahSelect.value);
-      const selectedAyahNumber = parseInt(this.value);
+      console.log("Selected Surah:", selectedSurahNumber, "Selected Ayah:", selectedAyahNumber);
 
-      // Add subtle animation
-      if (quranSelector) {
-        quranSelector.classList.add('changing');
+      if (!selectedSurahNumber || !selectedAyahNumber) {
+        console.log("No selection made, returning early");
+        return;
       }
 
-      // Update glow positions
-      updateGlowElements();
-
-      // Show loading animation
-      if (selectedAyahNumber && referenceText) {
-        referenceText.innerHTML = 'Loading <span class="loading-dots"><span></span><span></span><span></span></span>';
+      // Ensure the verse container is visible
+      if (verseContainer) {
+        verseContainer.style.display = 'block';
+        verseContainer.style.opacity = '1';
+        console.log("Verse container should be visible now");
       }
 
-      setTimeout(() => {
-        if (!selectedSurahNumber || !selectedAyahNumber) {
-          if (selectedSurahNumber && referenceText) {
-            const selectedSurah = quranData.find(surah => surah.number === selectedSurahNumber);
-            if (selectedSurah) {
-              referenceText.textContent = `Selected Surah: ${selectedSurah.name}. Please select an Ayah.`;
+      // Display loading state
+      if (arabicTextElement) {
+        arabicTextElement.innerHTML = 'Loading Arabic text...';
+        console.log("Set loading message for Arabic text");
+      }
+
+      if (translationElement) {
+        translationElement.textContent = 'Loading translation...';
+      }
+
+      // Make the API call to fetch verse data
+      fetchQuranVerse(selectedSurahNumber, selectedAyahNumber)
+        .then(verseData => {
+          console.log("Verse data received:", verseData);
+
+          if (!verseData.error) {
+            // Display Arabic text
+            if (arabicTextElement) {
+              console.log("Setting Arabic text:", verseData.arabic);
+              arabicTextElement.innerHTML = verseData.arabic;
             }
-          } else if (referenceText) {
-            referenceText.textContent = 'Please select a Surah and Ayah to see the reference.';
-          }
-          if (quranSelector) {
-            quranSelector.classList.remove('changing');
-          }
-          return;
-        }
 
-        // Find the selected Surah data
-        const selectedSurah = quranData.find(surah => surah.number === selectedSurahNumber);
-        if (selectedSurah && referenceText) {
-          updateReferenceText(selectedSurah, String(selectedAyahNumber));
-        }
+            // Display translation
+            if (translationElement) {
+              translationElement.textContent = verseData.english || 'Translation not available';
+            }
 
-        // Remove animation class
-        if (quranSelector) {
-          quranSelector.classList.remove('changing');
-        }
-      }, 400);
+            // Display metadata if available
+            if (verseMetaElement && verseData.meta) {
+              verseMetaElement.innerHTML = `
+                <div class="meta-item">Juz ${verseData.meta.juz}</div>
+                <div class="meta-item">Page ${verseData.meta.page}</div>
+                <div class="meta-item">Hizb ${Math.ceil(verseData.meta.hizbQuarter / 4)}.${verseData.meta.hizbQuarter % 4 === 0 ? 4 : verseData.meta.hizbQuarter % 4}</div>
+              `;
+            }
+          } else {
+            console.error("Error in verse data:", verseData.error);
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching verse:", error);
+        });
     });
   }
 

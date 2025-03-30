@@ -6,6 +6,7 @@
     <title>Quran Meditation Space</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
     <!-- Tailwind CSS removed - using custom styles instead -->
     <link rel="stylesheet" href="styles.css">
     <!-- Particles JS -->
@@ -40,9 +41,11 @@
                 </div>
             </div>
             
-            <div class="reference-display">
-                <h2>Selected Reference</h2>
-                <p id="selected-reference-text" class="reference-text">Please select a Surah and Ayah to see the reference.</p>
+            <!-- Quran verse display -->
+            <div id="verse-container" class="verse-container">
+                <div id="arabic-text" class="arabic-text"></div>
+                <div id="translation-text" class="translation-text"></div>
+                <div id="verse-meta" class="verse-meta"></div>
             </div>
 
             <!-- Ambient glow effects -->
