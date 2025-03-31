@@ -35,25 +35,26 @@ body, html {
 .quran-selector {
   background-color: rgba(15, 17, 26, 0.7);
   backdrop-filter: blur(8px);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 2.5rem;
   width: 100%;
-  max-width: 600px;
+  max-width: 650px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 
               0 0 40px rgba(78, 110, 242, 0.1),
               inset 0 0 15px rgba(78, 110, 242, 0.05);
   border: 1px solid rgba(78, 110, 242, 0.1);
   transition: all 0.3s ease;
+  position: relative;
 }
 
 /* Title styling */
 .title {
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 300;
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
   color: #e0e0e0;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px;
   position: relative;
   padding-bottom: 1rem;
 }
@@ -181,26 +182,26 @@ body, html {
 
 /* Arabic text styling */
 .arabic-text {
-  font-family: 'Amiri', serif;
-  font-size: 2rem;
+  font-family: 'Scheherazade New', 'Traditional Arabic', serif;
+  font-size: 2.5rem;
   line-height: 1.8;
-  text-align: right;
+  text-align: center;
+  margin-bottom: 2rem;
   direction: rtl;
   color: #ffffff;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(78, 110, 242, 0.2);
-  text-shadow: 0 0 10px rgba(78, 110, 242, 0.3);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* Translation text styling */
 .translation-text {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   line-height: 1.6;
-  color: #c0c0c0;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.85);
   margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(78, 110, 242, 0.1);
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Verse meta information */
@@ -477,4 +478,211 @@ body, html {
   100% {
     opacity: 0;
   }
+}
+
+/* Settings toggle button */
+.settings-container {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+}
+
+.settings-toggle {
+  background: rgba(78, 110, 242, 0.15);
+  border: 1px solid rgba(78, 110, 242, 0.2);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+}
+
+.settings-toggle:hover {
+  background: rgba(78, 110, 242, 0.3);
+  transform: translateY(-2px);
+}
+
+.settings-toggle svg {
+  width: 24px;
+  height: 24px;
+  fill: #e0e0e0;
+}
+
+/* Settings panel */
+.settings-panel {
+  position: absolute;
+  top: 5rem;
+  right: 1rem;
+  background: rgba(15, 17, 26, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 280px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  z-index: 9;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.settings-panel.hidden {
+  opacity: 0;
+  transform: translateY(-20px);
+  pointer-events: none;
+}
+
+.settings-panel.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Metadata section in settings panel */
+.settings-panel .metadata-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(78, 110, 242, 0.2);
+}
+
+.metadata-heading {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  color: #e0e0e0;
+}
+
+.metadata-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.metadata-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(30, 34, 51, 0.4);
+  border-radius: 8px;
+  padding: 0.75rem 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.metadata-item:hover {
+  background: rgba(30, 34, 51, 0.6);
+}
+
+.metadata-label {
+  font-size: 0.8rem;
+  color: #a0a0a0;
+  margin-bottom: 0.25rem;
+}
+
+.metadata-value {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #e0e0e0;
+}
+
+/* Make the settings panel slightly larger to accommodate the metadata */
+.settings-panel {
+  width: 320px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* If you have any CSS for metadata in the main UI, you might need to remove or modify it */
+/* For example, if you have something like this: */
+
+/* 
+.ayah-metadata {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(78, 110, 242, 0.2);
+}
+
+.metadata-item {
+  font-size: 0.9rem;
+  color: #a0a0a0;
+}
+*/
+
+/* Audio player refinements - removing the gray background */
+.audio-container {
+  background: transparent;
+  padding: 0.75rem 0;
+  margin: 0 auto 2.5rem;
+  max-width: 90%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  /* Removed box-shadow since we're removing the background */
+}
+
+/* Enhance audio controls for better visibility without background */
+.play-button {
+  background: rgba(78, 110, 242, 0.3);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.play-button:hover {
+  background: rgba(78, 110, 242, 0.5);
+}
+
+.audio-progress {
+  flex-grow: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.15); /* Slightly more visible */
+  border-radius: 2px;
+  position: relative;
+  cursor: pointer;
+}
+
+.audio-progress-bar {
+  position: absolute;
+  height: 100%;
+  background: linear-gradient(to right, #4e6ef2, #7a88ff);
+  border-radius: 2px;
+  width: 0%;
+}
+
+.audio-time {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8); /* Slightly more visible */
+  width: 40px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.volume-button {
+  background: transparent;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.volume-button svg {
+  fill: rgba(255, 255, 255, 0.8); /* Slightly more visible */
+  width: 20px;
+  height: 20px;
 } 
