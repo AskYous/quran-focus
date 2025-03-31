@@ -581,31 +581,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Set up audio event listeners
   setupAudioEvents();
+
+  // Add event listeners for the new navigation buttons
+  const prevAyahBtn = document.getElementById('prev-ayah-btn');
+  const nextAyahBtn = document.getElementById('next-ayah-btn');
+
+  if (prevAyahBtn) {
+    prevAyahBtn.addEventListener('click', navigateToPreviousAyah);
+  }
+
+  if (nextAyahBtn) {
+    nextAyahBtn.addEventListener('click', navigateToNextAyah);
+  }
 });
 
 function initCustomAudioPlayer() {
   const audioElement = document.getElementById('ayah-audio-player');
   const customPlayer = document.getElementById('custom-audio-player');
   const playPauseBtn = document.getElementById('play-pause-btn');
-  const volumeBtn = document.getElementById('volume-btn');
-  const progressBar = customPlayer.querySelector('.progress-bar');
-  const progressFilled = customPlayer.querySelector('.progress-filled');
-  const currentTime = customPlayer.querySelector('.current-time');
-  const durationTime = customPlayer.querySelector('.duration');
+  const prevAyahBtn = document.getElementById('prev-ayah-btn');
+  const nextAyahBtn = document.getElementById('next-ayah-btn');
   const playIcon = customPlayer.querySelector('.play-icon');
   const pauseIcon = customPlayer.querySelector('.pause-icon');
 
   // Play/Pause functionality
   playPauseBtn.addEventListener('click', togglePlay);
 
-  // Update progress bar as song plays
-  audioElement.addEventListener('timeupdate', updateProgress);
-
-  // Click on progress bar to skip
-  progressBar.addEventListener('click', skipTo);
-
-  // Audio duration loaded
-  audioElement.addEventListener('loadedmetadata', setDuration);
+  // Previous and Next buttons
+  prevAyahBtn.addEventListener('click', navigateToPreviousAyah);
+  nextAyahBtn.addEventListener('click', navigateToNextAyah);
 
   // Handle audio ending
   audioElement.addEventListener('ended', audioEnded);
@@ -622,142 +626,98 @@ function initCustomAudioPlayer() {
     }
   }
 
-  function updateProgress() {
-    const percent = (audioElement.currentTime / audioElement.duration) * 100;
-    progressFilled.style.width = `${percent}%`;
-
-    // Update current time
-    currentTime.textContent = formatTime(audioElement.currentTime);
-  }
-
-  function skipTo(e) {
-    const rect = progressBar.getBoundingClientRect();
-    const pos = (e.clientX - rect.left) / rect.width;
-    audioElement.currentTime = pos * audioElement.duration;
-  }
-
-  function setDuration() {
-    durationTime.textContent = formatTime(audioElement.duration);
-  }
-
   function audioEnded() {
-    // Reset UI elements
     playIcon.style.display = 'block';
     pauseIcon.style.display = 'none';
-
-    // Automatically advance to next ayah
-    advanceToNextAyah();
+    // Optional: Auto-play next ayah when current one ends
+    // navigateToNextAyah();
   }
+}
 
-  // Function to advance to the next ayah
-  function advanceToNextAyah() {
+// Function to navigate to the previous ayah
+function navigateToPreviousAyah() {
+  try {
     const surahSelect = document.getElementById('surah-select');
     const ayahSelect = document.getElementById('ayah-select');
-    const verseContainer = document.querySelector('.verse-container');
 
     if (!surahSelect || !ayahSelect) return;
 
-    // Add fade-out animation to current verse
-    if (verseContainer) {
-      verseContainer.classList.add('verse-fade-out');
+    let currentSurah = parseInt(surahSelect.value);
+    let currentAyah = parseInt(ayahSelect.value);
 
-      // Wait for animation to complete before changing verse
+    // If we're at the first ayah of the current surah
+    if (currentAyah <= 1) {
+      // If we're at Surah 1, wrap around to the last surah
+      if (currentSurah <= 1) {
+        currentSurah = 114; // Last surah in the Quran
+      } else {
+        currentSurah--;
+      }
+
+      // Update the surah dropdown
+      surahSelect.value = currentSurah;
+
+      // Trigger the change event to load the ayahs for this surah
+      const event = new Event('change');
+      surahSelect.dispatchEvent(event);
+
+      // Select the last ayah of the previous surah (will be populated after the event)
       setTimeout(() => {
-        // Regular verse changing logic
-        const currentSurahNumber = parseInt(surahSelect.value);
-        const currentAyahNumber = parseInt(ayahSelect.value);
-        const currentSurah = quranData.find(surah => surah.number === currentSurahNumber);
-
-        if (!currentSurah) return;
-
-        // Check if there are more ayahs in the current surah
-        if (currentAyahNumber < currentSurah.ayahCount) {
-          // Move to next ayah in current surah
-          ayahSelect.value = String(currentAyahNumber + 1);
-        } else {
-          // We're at the end of the current surah
-          // Check if there's a next surah available
-          if (currentSurahNumber < quranData.length) {
-            // Move to first ayah of next surah
-            surahSelect.value = String(currentSurahNumber + 1);
-
-            // Trigger surah change event to update ayah dropdown
-            const surahChangeEvent = new Event('change', { bubbles: true });
-            surahSelect.dispatchEvent(surahChangeEvent);
-
-            // After ayah dropdown is updated, select the first ayah
-            setTimeout(() => {
-              ayahSelect.selectedIndex = 1; // First ayah (index 0 is the placeholder)
-            }, 100);
-          } else {
-            // We're at the end of the Quran
-            console.log("Reached the end of the Quran");
-            verseContainer.classList.remove('verse-fade-out');
-            return;
-          }
+        if (ayahSelect.options.length > 0) {
+          ayahSelect.selectedIndex = ayahSelect.options.length - 1;
+          ayahSelect.dispatchEvent(new Event('change'));
         }
-
-        // Trigger the change event to load the next verse
-        const changeEvent = new Event('change', { bubbles: true });
-        ayahSelect.dispatchEvent(changeEvent);
-
-        // Add a small delay to reveal the new verse with animation
-        setTimeout(() => {
-          verseContainer.classList.remove('verse-fade-out');
-          verseContainer.classList.add('verse-fade-in');
-
-          // Remove the fade-in class after animation completes
-          setTimeout(() => {
-            verseContainer.classList.remove('verse-fade-in');
-          }, 1000);
-        }, 100);
-
-        // Auto-play the next ayah after a short delay to ensure audio is loaded
-        setTimeout(() => {
-          const audioPlayer = document.getElementById('ayah-audio-player');
-          if (audioPlayer) {
-            audioPlayer.play()
-              .then(() => {
-                // Update UI to show pause icon when playing
-                const playIcon = document.querySelector('.play-icon');
-                const pauseIcon = document.querySelector('.pause-icon');
-                if (playIcon && pauseIcon) {
-                  playIcon.style.display = 'none';
-                  pauseIcon.style.display = 'block';
-                }
-              })
-              .catch(error => {
-                console.error('Auto-play failed:', error);
-              });
-          }
-        }, 1000); // Increased delay to match the animation timing
-      }, 500); // Wait for fade-out animation
+      }, 300);
     } else {
-      // Fallback if verse container not found - use original logic
-      // ... existing fallback code from original function ...
+      // Simply go to the previous ayah in the current surah
+      ayahSelect.value = currentAyah - 1;
+      ayahSelect.dispatchEvent(new Event('change'));
     }
-
-    // Add this line near the beginning of the function
-    triggerTransitionPulse();
+  } catch (error) {
+    console.error('Error navigating to previous ayah:', error);
   }
+}
 
-  function formatTime(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    seconds = Math.floor(seconds % 60);
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-  }
+// Function to navigate to the next ayah
+function navigateToNextAyah() {
+  try {
+    const surahSelect = document.getElementById('surah-select');
+    const ayahSelect = document.getElementById('ayah-select');
 
-  // Add this function to create the pulse effect
-  function triggerTransitionPulse() {
-    const pulseElement = document.querySelector('.verse-transition-pulse');
-    if (pulseElement) {
-      pulseElement.classList.add('pulse-animation');
+    if (!surahSelect || !ayahSelect) return;
 
-      // Remove the class after animation completes
+    let currentSurah = parseInt(surahSelect.value);
+    let currentAyah = parseInt(ayahSelect.value);
+    let totalAyahs = ayahSelect.options.length - 1; // Account for the placeholder option
+
+    // If we're at the last ayah of the current surah
+    if (currentAyah >= totalAyahs) {
+      // If we're at the last surah, wrap around to the first surah
+      if (currentSurah >= 114) {
+        currentSurah = 1;
+      } else {
+        currentSurah++;
+      }
+
+      // Update the surah dropdown
+      surahSelect.value = currentSurah;
+
+      // Trigger the change event to load the ayahs for this surah
+      const event = new Event('change');
+      surahSelect.dispatchEvent(event);
+
+      // Select the first ayah of the next surah
       setTimeout(() => {
-        pulseElement.classList.remove('pulse-animation');
-      }, 1000);
+        ayahSelect.selectedIndex = 1; // First ayah (index 0 is the placeholder)
+        ayahSelect.dispatchEvent(new Event('change'));
+      }, 300);
+    } else {
+      // Simply go to the next ayah in the current surah
+      ayahSelect.value = currentAyah + 1;
+      ayahSelect.dispatchEvent(new Event('change'));
     }
+  } catch (error) {
+    console.error('Error navigating to next ayah:', error);
   }
 }
 

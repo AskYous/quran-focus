@@ -72,6 +72,11 @@
     <div class="audio-container">
         <div id="custom-audio-player" class="custom-audio-player">
             <audio id="ayah-audio-player" preload="metadata"></audio>
+            <button id="prev-ayah-btn" class="nav-btn prev-btn">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </button>
             <button id="play-pause-btn" class="play-pause-btn">
                 <svg class="play-icon" viewBox="0 0 24 24">
                     <path d="M8 5v14l11-7z"/>
@@ -80,20 +85,9 @@
                     <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
                 </svg>
             </button>
-            <div class="progress-container">
-                <div class="time current-time">0:00</div>
-                <div class="progress-bar-wrapper">
-                    <div class="progress-bar">
-                        <div class="progress-filled"></div>
-                    </div>
-                </div>
-                <div class="time duration">0:00</div>
-            </div>
-            <button id="volume-btn" class="volume-btn">
+            <button id="next-ayah-btn" class="nav-btn next-btn">
                 <svg viewBox="0 0 24 24">
-                    <path class="volume-icon" d="M3 9v6h4l5 5V4L7 9H3z"/>
-                    <path class="volume-wave" d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
-                    <path class="volume-wave-outer" d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
                 </svg>
             </button>
         </div>
