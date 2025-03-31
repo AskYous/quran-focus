@@ -374,19 +374,36 @@ body {
   }
 }
 
-/* Minimalistic Three-button audio player layout */
+/* Auto-hiding minimalistic audio player */
+.audio-container {
+    position: fixed;
+    bottom: 15px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none; /* Allow clicks to pass through when hidden */
+}
+
+.audio-container.visible {
+    opacity: 1;
+    pointer-events: auto; /* Capture clicks when visible */
+}
+
 .custom-audio-player {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 16px;
     padding: 8px 12px;
-    background: rgba(0, 0, 0, 0.15);
+    background: rgba(0, 0, 0, 0.3);
     border-radius: 30px;
-    margin: 15px auto;
     max-width: 180px;
     backdrop-filter: blur(5px);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .play-pause-btn, .nav-btn {
@@ -409,7 +426,7 @@ body {
 }
 
 .play-pause-btn:hover, .nav-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15);
     transform: scale(1.05);
 }
 
@@ -417,7 +434,7 @@ body {
     width: 20px;
     height: 20px;
     fill: rgba(190, 215, 255, 0.9);
-    opacity: 0.85;
+    opacity: 0.9;
 }
 
 .play-pause-btn svg {
@@ -432,6 +449,19 @@ body {
 /* Hide native audio element */
 #ayah-audio-player {
     display: none;
+}
+
+/* Make sure the text remains visible - explicitly set these styles */
+.ayah-display {
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+.arabic-text, .translation-text {
+    opacity: 1;
+    transition: none;
+    pointer-events: auto;
 }
 
 /* Subtle hover effect */

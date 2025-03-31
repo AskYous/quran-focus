@@ -598,41 +598,157 @@ document.addEventListener('DOMContentLoaded', function () {
 function initCustomAudioPlayer() {
   const audioElement = document.getElementById('ayah-audio-player');
   const customPlayer = document.getElementById('custom-audio-player');
+  const audioContainer = document.querySelector('.audio-container');
   const playPauseBtn = document.getElementById('play-pause-btn');
   const prevAyahBtn = document.getElementById('prev-ayah-btn');
   const nextAyahBtn = document.getElementById('next-ayah-btn');
   const playIcon = customPlayer.querySelector('.play-icon');
   const pauseIcon = customPlayer.querySelector('.pause-icon');
 
+  let hideControlsTimeout;
+  let isUserInteracting = false;
+
+  // Apply initial visibility state
+  if (audioContainer) {
+    // Start visible, then fade out
+    audioContainer.classList.add('visible');
+
+    setTimeout(() => {
+      audioContainer.classList.remove('visible');
+    }, 3000);
+  }
+
   // Play/Pause functionality
-  playPauseBtn.addEventListener('click', togglePlay);
+  if (playPauseBtn) {
+    playPauseBtn.addEventListener('click', togglePlay);
+  }
 
   // Previous and Next buttons
-  prevAyahBtn.addEventListener('click', navigateToPreviousAyah);
-  nextAyahBtn.addEventListener('click', navigateToNextAyah);
+  if (prevAyahBtn) {
+    prevAyahBtn.addEventListener('click', navigateToPreviousAyah);
+  }
 
-  // Handle audio ending
-  audioElement.addEventListener('ended', audioEnded);
+  if (nextAyahBtn) {
+    nextAyahBtn.addEventListener('click', navigateToNextAyah);
+  }
+
+  // Handle audio events
+  if (audioElement) {
+    audioElement.addEventListener('ended', () => {
+      if (playIcon) playIcon.style.display = 'block';
+      if (pauseIcon) pauseIcon.style.display = 'none';
+
+      // Auto-play next ayah when current one finishes
+      navigateToNextAyah();
+    });
+  }
+
+  // Show controls on document interaction
+  let mouseMoveTimer;
+  document.addEventListener('mousemove', function () {
+    clearTimeout(mouseMoveTimer);
+    mouseMoveTimer = setTimeout(() => {
+      showControls();
+    }, 50);
+  });
+
+  // Show controls on click
+  document.addEventListener('click', function () {
+    showControls();
+  });
+
+  // Show controls on touch events (for mobile)
+  document.addEventListener('touchstart', function () {
+    showControls();
+  });
+
+  // Keep controls visible while hovering
+  if (audioContainer) {
+    audioContainer.addEventListener('mouseenter', function () {
+      isUserInteracting = true;
+      showControls(false); // Don't reset timeout
+    });
+
+    audioContainer.addEventListener('mouseleave', function () {
+      isUserInteracting = false;
+      resetHideTimeout();
+    });
+  }
 
   function togglePlay() {
+    if (!audioElement) return;
+
     if (audioElement.paused) {
-      audioElement.play();
-      playIcon.style.display = 'none';
-      pauseIcon.style.display = 'block';
+      if (!audioElement.src || audioElement.src === '' || audioElement.src === window.location.href) {
+        return;
+      }
+
+      const playPromise = audioElement.play();
+
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          if (playIcon) playIcon.style.display = 'none';
+          if (pauseIcon) pauseIcon.style.display = 'block';
+        }).catch(error => {
+          if (playIcon) playIcon.style.display = 'block';
+          if (pauseIcon) pauseIcon.style.display = 'none';
+        });
+      }
     } else {
       audioElement.pause();
-      playIcon.style.display = 'block';
-      pauseIcon.style.display = 'none';
+      if (playIcon) playIcon.style.display = 'block';
+      if (pauseIcon) pauseIcon.style.display = 'none';
+    }
+
+    showControls();
+  }
+
+  function showControls(resetTimeout = true) {
+    if (!audioContainer) return;
+
+    audioContainer.classList.add('visible');
+
+    if (resetTimeout) {
+      resetHideTimeout();
     }
   }
 
-  function audioEnded() {
-    playIcon.style.display = 'block';
-    pauseIcon.style.display = 'none';
-    // Optional: Auto-play next ayah when current one ends
-    // navigateToNextAyah();
+  function resetHideTimeout(delay = 2500) {
+    clearTimeout(hideControlsTimeout);
+
+    if (!audioContainer) return;
+
+    hideControlsTimeout = setTimeout(function () {
+      if (!isUserInteracting) {
+        audioContainer.classList.remove('visible');
+      }
+    }, delay);
   }
 }
+
+// Function to load audio for an ayah
+function loadAyahAudio(ayahData) {
+  const audioElement = document.getElementById('ayah-audio-player');
+
+  if (audioElement && ayahData && ayahData.audioUrl) {
+    // Set the src and load
+    audioElement.src = ayahData.audioUrl;
+    audioElement.load();
+
+    // Show the controls when a new ayah is loaded
+    const audioContainer = document.querySelector('.audio-container');
+    if (audioContainer) {
+      audioContainer.classList.add('visible');
+    }
+
+    // If auto-play is desired when loading an ayah directly (not just navigation)
+    // Uncomment the next line:
+    // playAudioAfterAyahChange();
+  }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', initCustomAudioPlayer);
 
 // Function to navigate to the previous ayah
 function navigateToPreviousAyah() {
@@ -666,12 +782,16 @@ function navigateToPreviousAyah() {
         if (ayahSelect.options.length > 0) {
           ayahSelect.selectedIndex = ayahSelect.options.length - 1;
           ayahSelect.dispatchEvent(new Event('change'));
+          // Play the audio after selection
+          playAudioAfterAyahChange();
         }
       }, 300);
     } else {
       // Simply go to the previous ayah in the current surah
       ayahSelect.value = currentAyah - 1;
       ayahSelect.dispatchEvent(new Event('change'));
+      // Play the audio
+      playAudioAfterAyahChange();
     }
   } catch (error) {
     console.error('Error navigating to previous ayah:', error);
@@ -710,15 +830,51 @@ function navigateToNextAyah() {
       setTimeout(() => {
         ayahSelect.selectedIndex = 1; // First ayah (index 0 is the placeholder)
         ayahSelect.dispatchEvent(new Event('change'));
+        // Play the audio after selection
+        playAudioAfterAyahChange();
       }, 300);
     } else {
       // Simply go to the next ayah in the current surah
       ayahSelect.value = currentAyah + 1;
       ayahSelect.dispatchEvent(new Event('change'));
+      // Play the audio
+      playAudioAfterAyahChange();
     }
   } catch (error) {
     console.error('Error navigating to next ayah:', error);
   }
+}
+
+// Function to play audio after ayah changes
+function playAudioAfterAyahChange() {
+  setTimeout(() => {
+    const audioElement = document.getElementById('ayah-audio-player');
+    if (audioElement && audioElement.src && audioElement.src !== window.location.href) {
+      // Update the play/pause button appearance
+      const playIcon = document.querySelector('.play-icon');
+      const pauseIcon = document.querySelector('.pause-icon');
+
+      if (playIcon) playIcon.style.display = 'none';
+      if (pauseIcon) pauseIcon.style.display = 'block';
+
+      // Play the audio
+      const playPromise = audioElement.play();
+
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          // Auto-play was prevented
+          if (playIcon) playIcon.style.display = 'block';
+          if (pauseIcon) pauseIcon.style.display = 'none';
+        });
+      }
+
+      // Show the controls
+      const audioContainer = document.querySelector('.audio-container');
+      if (audioContainer) {
+        audioContainer.classList.add('visible');
+      }
+    }
+  }, 500); // Small delay to ensure audio is loaded
 }
 
 // Update this to only reference the metadata elements in the settings panel
@@ -859,4 +1015,19 @@ function getSurahAyahCount(surahNum) {
   ];
 
   return ayahCounts[surahNum - 1]; // Adjust for 0-indexed array
-} 
+}
+
+// Initialize player when DOM is loaded
+document.addEventListener('DOMContentLoaded', function () {
+  initCustomAudioPlayer();
+
+  // Show controls briefly on page load
+  const audioContainer = document.querySelector('.audio-container');
+  audioContainer.classList.add('visible');
+
+  setTimeout(function () {
+    if (document.getElementById('ayah-audio-player').paused) {
+      audioContainer.classList.remove('visible');
+    }
+  }, 3000);
+}); 
