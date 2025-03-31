@@ -120,9 +120,9 @@ const quranData = [
 // CONFIGURATION MODULE
 const RECITER = {
   shuraym: {
-    id: "ar.saoodshuraym",
-    name: "Sa'ud ash-Shuraym",
-    bitrate: 64
+    id: "ar.ahmedajamy",
+    name: "Ahmed ibn Ali al-Ajamy",
+    bitrate: 128
   }
 };
 
