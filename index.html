@@ -6,7 +6,7 @@
     <title>Quran Meditation Space</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Sans+Arabic:wght@300;400;600&family=Playfair+Display:wght@300;400;600&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
     <!-- Tailwind CSS removed - using custom styles instead -->
     <link rel="stylesheet" href="styles.css">
     <!-- Particles JS -->
@@ -105,5 +105,20 @@
 
     <!-- Light pulse effect for transitions -->
     <div class="verse-transition-pulse"></div>
+
+    <script>
+      // Font loading optimization
+      if ('fonts' in document) {
+        // Preload the primary Arabic font
+        Promise.all([
+          document.fonts.load('1em "Scheherazade New"'),
+          document.fonts.load('1em "Amiri"'),
+          document.fonts.load('1em "Noto Sans Arabic"')
+        ]).then(() => {
+          // Add a class when fonts are loaded
+          document.documentElement.classList.add('fonts-loaded');
+        });
+      }
+    </script>
 </body>
 </html> 

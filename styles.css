@@ -204,14 +204,17 @@ body {
 
 /* Arabic text styling */
 .arabic-text {
-  font-family: 'Scheherazade New', 'Traditional Arabic', serif;
+  font-family: 'Scheherazade New', 'Amiri', 'Noto Sans Arabic', serif;
   font-size: 2.5rem;
-  line-height: 1.8;
+  line-height: 2;
   text-align: center;
   margin-bottom: 2rem;
   direction: rtl;
   color: #ffffff;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  font-display: swap; /* Add this to prevent invisible text while loading */
 }
 
 /* Translation text styling */
@@ -746,4 +749,46 @@ p, h1, h2, h3, h4, h5, h6, span, label {
     width: 22px;
     height: 22px;
     fill: rgba(190, 215, 255, 0.95);
+}
+
+/* Font loading optimization */
+@font-face {
+  font-family: 'Scheherazade New';
+  src: local('Scheherazade New'),
+       url('https://fonts.gstatic.com/s/scheherazadenew/v8/4UaZrFhTvxVnHDvUkUiHg8jprP4DOwFmO24p.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Amiri';
+  src: local('Amiri'),
+       url('https://fonts.gstatic.com/s/amiri/v23/J7aRnpd8CGxBHpUrtLMA7w.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Hide text until fonts load */
+.arabic-text, .translation-text {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.fonts-loaded .arabic-text,
+.fonts-loaded .translation-text {
+  opacity: 1;
+}
+
+/* Fallback in case JavaScript is disabled */
+@media (prefers-reduced-motion: no-preference) {
+  .arabic-text, .translation-text {
+    animation: reveal-text 0.5s ease 1s forwards;
+  }
+  
+  @keyframes reveal-text {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
 } 
