@@ -978,4 +978,135 @@ p, h1, h2, h3, h4, h5, h6, span, label {
 .fonts-loaded .arabic-text,
 .fonts-loaded .translation-text {
   opacity: 1;
+}
+
+/* Add these new styles for the English translation effects */
+
+/* Translation Glow Container */
+.translation-glow-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+  padding: 0.5rem;
+  z-index: 4;
+}
+
+.translation-glow-container::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -5%;
+  width: 110%;
+  height: 140%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(78, 110, 242, 0.03) 40%,
+    transparent 70%
+  );
+  border-radius: 30% / 70%;
+  filter: blur(15px);
+  opacity: 0;
+  animation: translation-container-glow 7s ease-in-out infinite;
+  z-index: -1;
+  pointer-events: none;
+}
+
+@keyframes translation-container-glow {
+  0%, 100% { opacity: 0.15; transform: scale(1) translateX(0); }
+  50% { opacity: 0.4; transform: scale(1.03) translateX(5px); }
+}
+
+/* Translation light particles */
+.translation-light-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.translation-particle {
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: 
+    0 0 8px 1px rgba(255, 255, 255, 0.2),
+    0 0 15px 3px rgba(78, 110, 242, 0.1);
+}
+
+@keyframes float-translation-particle {
+  0%, 100% { transform: translate(0, 0) scale(0.9); }
+  25% { transform: translate(25px, -5px) scale(1); }
+  50% { transform: translate(40px, 5px) scale(0.95); }
+  75% { transform: translate(15px, 10px) scale(1.05); }
+}
+
+@keyframes translation-glow-pulse {
+  0%, 100% { 
+    opacity: 0.2; 
+    box-shadow: 0 0 8px 1px rgba(255, 255, 255, 0.2), 0 0 15px 3px rgba(78, 110, 242, 0.1); 
+  }
+  50% { 
+    opacity: 0.5; 
+    box-shadow: 0 0 12px 3px rgba(255, 255, 255, 0.3), 0 0 20px 5px rgba(78, 110, 242, 0.15); 
+  }
+}
+
+/* Enhanced translation text styling */
+.translation-text {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 1.5rem;
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  z-index: 6;
+  text-shadow: 
+    0 0 3px rgba(255, 255, 255, 0.2),
+    0 0 15px rgba(78, 110, 242, 0.2);
+  animation: translation-text-glow 10s ease-in-out infinite;
+}
+
+@keyframes translation-text-glow {
+  0%, 100% { 
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.2), 0 0 15px rgba(78, 110, 242, 0.2);
+    color: rgba(255, 255, 255, 0.85);
+  }
+  50% { 
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3), 0 0 20px rgba(78, 110, 242, 0.3);
+    color: rgba(255, 255, 255, 0.95);
+  }
+}
+
+/* Enhance transition animations */
+.transition-out.translation-text {
+  transform: translateY(5px);
+}
+
+.transition-in.translation-text {
+  animation: fade-in-translation 0.5s ease forwards;
+}
+
+@keyframes fade-in-translation {
+  0% {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Maintain existing styles with enhancements */
+.arabic-text, .translation-text {
+  transition: opacity 0.3s ease, transform 0.4s ease;
+  opacity: 1;
 } 

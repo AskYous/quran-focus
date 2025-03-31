@@ -540,11 +540,12 @@ function createAyahTransition() {
   });
 }
 
-// Add this function to create the text animation effects
+// Update the function to create text glow effects for both Arabic and English
 function addTextGlowEffects() {
   const arabicText = document.getElementById('arabic-text');
+  const translationText = document.getElementById('translation-text');
 
-  // Create a subtle glow container around the text
+  // Create a subtle glow container around the Arabic text
   if (!document.querySelector('.ayah-glow-container')) {
     const glowContainer = document.createElement('div');
     glowContainer.className = 'ayah-glow-container';
@@ -552,7 +553,15 @@ function addTextGlowEffects() {
     glowContainer.appendChild(arabicText);
   }
 
-  // Add decorative particles around the text
+  // Create a subtle glow container around the English text
+  if (!document.querySelector('.translation-glow-container')) {
+    const translationGlowContainer = document.createElement('div');
+    translationGlowContainer.className = 'translation-glow-container';
+    translationText.parentNode.insertBefore(translationGlowContainer, translationText);
+    translationGlowContainer.appendChild(translationText);
+  }
+
+  // Add decorative particles around both texts
   if (!document.querySelector('.ayah-light-particles')) {
     const lightParticles = document.createElement('div');
     lightParticles.className = 'ayah-light-particles';
@@ -563,6 +572,71 @@ function addTextGlowEffects() {
     }
     arabicText.parentNode.appendChild(lightParticles);
   }
+
+  // Add translation-specific particles
+  if (!document.querySelector('.translation-light-particles')) {
+    const translationParticles = document.createElement('div');
+    translationParticles.className = 'translation-light-particles';
+    for (let i = 0; i < 6; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'light-particle translation-particle';
+      translationParticles.appendChild(particle);
+    }
+    translationText.parentNode.appendChild(translationParticles);
+  }
+}
+
+// Function to animate all particles
+function animateParticles() {
+  // Animate Arabic text particles
+  const particles = document.querySelectorAll('.light-particle:not(.translation-particle)');
+  particles.forEach((particle, index) => {
+    // Reset any existing animations
+    particle.style.animation = 'none';
+
+    // Calculate random positions around the text
+    const delay = Math.random() * 4;
+    const duration = 5 + Math.random() * 5;
+
+    // Force reflow
+    void particle.offsetWidth;
+
+    // Apply new animation
+    particle.style.animation = `float-particle ${duration}s ease-in-out ${delay}s infinite, 
+                                glow-pulse ${duration / 2}s ease-in-out ${delay}s infinite`;
+
+    // Set random positions
+    particle.style.top = `${20 + Math.random() * 60}%`;
+    particle.style.left = `${10 + Math.random() * 80}%`;
+    particle.style.opacity = (0.3 + Math.random() * 0.5).toString();
+    particle.style.width = `${3 + Math.random() * 8}px`;
+    particle.style.height = particle.style.width;
+  });
+
+  // Animate English translation particles with different characteristics
+  const translationParticles = document.querySelectorAll('.translation-particle');
+  translationParticles.forEach((particle, index) => {
+    // Reset any existing animations
+    particle.style.animation = 'none';
+
+    // Calculate random positions around the text
+    const delay = Math.random() * 3;
+    const duration = 6 + Math.random() * 4;
+
+    // Force reflow
+    void particle.offsetWidth;
+
+    // Apply new animation with more horizontal movement for translation
+    particle.style.animation = `float-translation-particle ${duration}s ease-in-out ${delay}s infinite, 
+                                translation-glow-pulse ${duration / 2}s ease-in-out ${delay}s infinite`;
+
+    // Set random positions
+    particle.style.top = `${30 + Math.random() * 40}%`;
+    particle.style.left = `${15 + Math.random() * 70}%`;
+    particle.style.opacity = (0.2 + Math.random() * 0.4).toString();
+    particle.style.width = `${2 + Math.random() * 5}px`;
+    particle.style.height = particle.style.width;
+  });
 }
 
 // Modify displayVerse to add the glow effects
@@ -593,33 +667,6 @@ async function displayVerse(surahNumber, ayahNumber, verseData) {
   // Update page title with current surah and ayah
   const surahName = quranData.find(s => s.number == surahNumber)?.name || '';
   document.title = `Quran - ${surahName} (${surahNumber}:${ayahNumber})`;
-}
-
-// Function to animate the light particles
-function animateParticles() {
-  const particles = document.querySelectorAll('.light-particle');
-  particles.forEach((particle, index) => {
-    // Reset any existing animations
-    particle.style.animation = 'none';
-
-    // Calculate random positions around the text
-    const delay = Math.random() * 4;
-    const duration = 5 + Math.random() * 5;
-
-    // Force reflow
-    void particle.offsetWidth;
-
-    // Apply new animation
-    particle.style.animation = `float-particle ${duration}s ease-in-out ${delay}s infinite, 
-                                glow-pulse ${duration / 2}s ease-in-out ${delay}s infinite`;
-
-    // Set random positions
-    particle.style.top = `${20 + Math.random() * 60}%`;
-    particle.style.left = `${10 + Math.random() * 80}%`;
-    particle.style.opacity = (0.3 + Math.random() * 0.5).toString();
-    particle.style.width = `${3 + Math.random() * 8}px`;
-    particle.style.height = particle.style.width;
-  });
 }
 
 // EVENT HANDLERS
