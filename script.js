@@ -495,6 +495,32 @@ function loadAndDisplayAyah(globalAyahNumber) {
   return playAyahAudio(currentAyahNumber);
 }
 
+function updateUI(surahNumber, ayahNumber, verseData) {
+  // Update the Arabic text element
+  const arabicTextElement = document.getElementById('arabic-text');
+  if (arabicTextElement) {
+    arabicTextElement.innerHTML = verseData.arabic;
+    arabicTextElement.classList.add('verse-fade-in');
+  }
+
+  // Update the translation text element
+  const translationElement = document.getElementById('translation-text');
+  if (translationElement) {
+    translationElement.textContent = verseData.english;
+    translationElement.classList.add('verse-fade-in');
+  }
+
+  // Update the verse container styling if needed
+  const verseContainer = document.querySelector('.verse-container');
+  if (verseContainer) {
+    verseContainer.classList.add('loaded');
+  }
+
+  // Update page title with current surah and ayah
+  const surahName = quranData.find(s => s.number == surahNumber)?.name || '';
+  document.title = `Quran - ${surahName} (${surahNumber}:${ayahNumber})`;
+}
+
 // EVENT HANDLERS
 function handleSurahChange() {
   const surahSelect = document.getElementById('surah-select');
