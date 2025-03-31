@@ -131,6 +131,66 @@ let currentAyahNumber = 1;
 let audioControlsTimeout;
 let isUserInteractingWithAudio = false;
 
+// Add a cache to store preloaded verses
+const verseCache = new Map();
+let nextVersePreloader = null;
+
+// Function to preload the next verse
+async function preloadNextVerse(currentSurah, currentAyah) {
+  try {
+    // Calculate the next verse number
+    let nextSurah = parseInt(currentSurah);
+    let nextAyah = parseInt(currentAyah) + 1;
+
+    // If we've reached the end of the surah, move to the next surah
+    const currentSurahData = quranData.find(s => s.number == currentSurah);
+    if (currentSurahData && nextAyah > currentSurahData.ayahCount) {
+      nextSurah++;
+      nextAyah = 1;
+
+      // If we've reached the end of the Quran, wrap around to the first surah
+      if (nextSurah > 114) {
+        nextSurah = 1;
+      }
+    }
+
+    // Generate a cache key
+    const cacheKey = `${nextSurah}:${nextAyah}`;
+
+    // Check if this verse is already in the cache
+    if (!verseCache.has(cacheKey)) {
+      // Fetch the next verse data
+      const verseData = await fetchQuranVerse(nextSurah, nextAyah);
+
+      // Store in cache
+      verseCache.set(cacheKey, verseData);
+
+      // Preload the audio as well
+      const nextAyahGlobal = calculateGlobalAyahNumber(nextSurah, nextAyah);
+      preloadAudio(nextAyahGlobal);
+    }
+  } catch (error) {
+    console.error("Error preloading next verse:", error);
+  }
+}
+
+// Function to preload audio without playing it
+function preloadAudio(ayahNumber) {
+  // Create a temporary audio element for preloading
+  const tempAudio = new Audio();
+  const audioURL = `https://cdn.islamic.network/quran/audio/128/ar.ahmedajamy/${ayahNumber}.mp3`;
+
+  // Just load the audio, don't play it
+  tempAudio.src = audioURL;
+  tempAudio.preload = 'auto';
+  tempAudio.load();
+
+  // We don't need to keep a reference to this element once it loads
+  tempAudio.oncanplaythrough = () => {
+    tempAudio.oncanplaythrough = null;
+  };
+}
+
 // API & DATA ACCESS MODULE
 async function fetchQuranVerse(surahNumber, ayahNumber) {
   console.log(`Fetching verse data for Surah ${surahNumber}, Ayah ${ayahNumber}`);
@@ -616,7 +676,7 @@ function animateParticles() {
   });
 }
 
-// Modify displayVerse to add the glow effects
+// Modify displayVerse to start preloading the next verse
 async function displayVerse(surahNumber, ayahNumber, verseData) {
   // Add transition effect if elements already have content
   const arabicText = document.getElementById('arabic-text');
@@ -644,6 +704,15 @@ async function displayVerse(surahNumber, ayahNumber, verseData) {
   // Update page title with current surah and ayah
   const surahName = quranData.find(s => s.number == surahNumber)?.name || '';
   document.title = `Quran - ${surahName} (${surahNumber}:${ayahNumber})`;
+
+  // Start preloading the next verse
+  if (nextVersePreloader) {
+    clearTimeout(nextVersePreloader);
+  }
+
+  nextVersePreloader = setTimeout(() => {
+    preloadNextVerse(surahNumber, ayahNumber);
+  }, 500); // Small delay to ensure current verse is fully processed
 }
 
 // EVENT HANDLERS
@@ -923,7 +992,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 500);
 });
 
-// Remove any loading screen functionality from loadVerse
+// Modified loadVerse function to use cache when available
 async function loadVerse(surahNumber, ayahNumber) {
   // Save current position to history state
   currentSurahNumber = surahNumber;
@@ -934,37 +1003,95 @@ async function loadVerse(surahNumber, ayahNumber) {
   history.pushState({ surah: surahNumber, ayah: ayahNumber }, '', newUrl);
 
   // Set the surah selector
-  surahSelect.value = surahNumber;
+  const surahSelect = document.getElementById('surah-select');
+  if (surahSelect) {
+    surahSelect.value = surahNumber;
+  }
 
-  // Fetch the verse data directly
-  try {
-    const verseData = await fetchVerse(surahNumber, ayahNumber);
+  // Generate a cache key
+  const cacheKey = `${surahNumber}:${ayahNumber}`;
+
+  // Try to get the verse from cache
+  let verseData;
+  if (verseCache.has(cacheKey)) {
+    verseData = verseCache.get(cacheKey);
     await displayVerse(surahNumber, ayahNumber, verseData);
+  } else {
+    // If not in cache, fetch it normally
+    try {
+      verseData = await fetchQuranVerse(surahNumber, ayahNumber);
+      verseCache.set(cacheKey, verseData); // Add to cache
+      await displayVerse(surahNumber, ayahNumber, verseData);
+    } catch (error) {
+      console.error("Error loading verse:", error);
+    }
+  }
 
-    // Load the audio for this ayah
-    return playAyahAudio(currentAyahNumber);
-  } catch (error) {
-    console.error("Error loading verse:", error);
+  // Handle audio loading and playing
+  return playAyahAudio(currentAyahNumber);
+}
+
+// Handle navigation buttons to use the cache
+function navigateToNextAyah() {
+  let nextSurah = currentSurahNumber;
+  let nextAyah = parseInt(currentAyahWithinSurah) + 1;
+
+  // If we're at the end of the surah, go to the next one
+  const currentSurahData = quranData.find(s => s.number == currentSurahNumber);
+  if (currentSurahData && nextAyah > currentSurahData.ayahCount) {
+    nextSurah++;
+    nextAyah = 1;
+
+    // If we're at the end of the Quran, loop back to the beginning
+    if (nextSurah > 114) {
+      nextSurah = 1;
+      nextAyah = 1;
+    }
+  }
+
+  loadVerse(nextSurah, nextAyah);
+}
+
+function navigateToPreviousAyah() {
+  let prevSurah = currentSurahNumber;
+  let prevAyah = parseInt(currentAyahWithinSurah) - 1;
+
+  // If we're at the beginning of the surah, go to the previous one
+  if (prevAyah < 1) {
+    prevSurah--;
+
+    // If we're at the beginning of the Quran, loop back to the end
+    if (prevSurah < 1) {
+      prevSurah = 114;
+    }
+
+    // Get the number of ayahs in the previous surah
+    const prevSurahData = quranData.find(s => s.number == prevSurah);
+    if (prevSurahData) {
+      prevAyah = prevSurahData.ayahCount;
+    } else {
+      prevAyah = 1; // Fallback
+    }
+  }
+
+  loadVerse(prevSurah, prevAyah);
+}
+
+// Limit cache size to prevent memory issues
+function limitCacheSize() {
+  const MAX_CACHE_SIZE = 50; // Adjust based on your needs
+
+  if (verseCache.size > MAX_CACHE_SIZE) {
+    // Remove the oldest entries
+    const keysToDelete = Array.from(verseCache.keys()).slice(0, verseCache.size - MAX_CACHE_SIZE);
+    keysToDelete.forEach(key => verseCache.delete(key));
   }
 }
 
-// Remove any loading references in the initialization code (if any)
-async function initializeApp() {
-  // Load quran data
-  await loadQuranData();
+// Add cache management to the app initialization
+function initializeApp() {
+  // ... existing initialization code ...
 
-  // Set up event listeners
-  setupEventListeners();
-
-  // Parse URL params
-  const params = new URLSearchParams(window.location.search);
-  const surahParam = params.get('surah');
-  const ayahParam = params.get('ayah');
-
-  // Load initial verse
-  const initialSurah = surahParam || 1;
-  const initialAyah = ayahParam || 1;
-
-  // Load verse directly without showing loading screen
-  loadVerse(initialSurah, initialAyah);
+  // Set up a periodic cache cleanup
+  setInterval(limitCacheSize, 60000); // Check every minute
 } 
