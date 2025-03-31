@@ -128,6 +128,8 @@ const RECITER = {
 
 // GLOBAL STATE VARIABLES
 let currentAyahNumber = 1;
+let audioControlsTimeout;
+let isUserInteractingWithAudio = false;
 
 // API & DATA ACCESS MODULE
 async function fetchQuranVerse(surahNumber, ayahNumber) {
@@ -204,214 +206,141 @@ function getSurahAyahCount(surahNum) {
 
 // AUDIO CONTROL MODULE
 function playAyahAudio(globalAyahNumber) {
-  try {
-    // If there's a valid ayah number to play
-    if (globalAyahNumber) {
-      console.log(`Setting up audio for ayah number ${globalAyahNumber}`);
+  const audioPlayer = document.getElementById('ayah-audio-player');
+  if (!audioPlayer || !globalAyahNumber) return false;
 
-      // Construct the audio URL using the AlQuran.Cloud CDN
-      const audioUrl = `https://cdn.islamic.network/quran/audio/${RECITER.shuraym.bitrate}/${RECITER.shuraym.id}/${globalAyahNumber}.mp3`;
+  // Construct the audio URL
+  const audioUrl = `https://cdn.islamic.network/quran/audio/${RECITER.shuraym.bitrate}/${RECITER.shuraym.id}/${globalAyahNumber}.mp3`;
 
-      // Get the audio element
-      const audioPlayer = document.getElementById('ayah-audio-player');
+  // Update the audio element
+  audioPlayer.src = audioUrl;
+  audioPlayer.load();
 
-      // Update the audio element's src attribute if element exists
-      if (audioPlayer) {
-        audioPlayer.setAttribute('src', audioUrl);
-        audioPlayer.load();
+  // Reset UI
+  updatePlayPauseButton(true);
 
-        // Reset the play/pause button to show play icon
-        const playIcon = document.querySelector('.play-icon');
-        const pauseIcon = document.querySelector('.pause-icon');
-        if (playIcon && pauseIcon) {
-          playIcon.style.display = 'block';
-          pauseIcon.style.display = 'none';
-        }
-
-        console.log(`Set audio source to: ${audioUrl}`);
-        return true; // Return true if audio source was set successfully
-      }
-    }
-  } catch (error) {
-    console.error('Error in playAyahAudio:', error);
-  }
-  return false;
+  return true;
 }
 
 function togglePlayPause() {
   const audioPlayer = document.getElementById('ayah-audio-player');
-  const playIcon = document.querySelector('.play-icon');
-  const pauseIcon = document.querySelector('.pause-icon');
+  if (!audioPlayer) return;
 
-  if (audioPlayer && playIcon && pauseIcon) {
-    if (audioPlayer.paused) {
-      playAudio();
+  if (audioPlayer.paused) {
+    if (!audioPlayer.src || audioPlayer.src === window.location.href) {
+      // No valid source - load current ayah
+      loadAndDisplayAyah(currentAyahNumber);
+      setTimeout(() => playAudio(), 300);
     } else {
-      audioPlayer.pause();
-      playIcon.style.display = 'block';
-      pauseIcon.style.display = 'none';
+      playAudio();
     }
+  } else {
+    audioPlayer.pause();
+    updatePlayPauseButton(true);
   }
 }
 
 function playAudio() {
   const audioPlayer = document.getElementById('ayah-audio-player');
+  if (!audioPlayer || !audioPlayer.src || audioPlayer.src === window.location.href) {
+    console.log('No valid audio source to play');
+    return;
+  }
+
+  console.log('Playing audio:', audioPlayer.src);
+
+  audioPlayer.play()
+    .then(() => {
+      console.log('Audio playback started successfully');
+      updatePlayPauseButton(false);
+    })
+    .catch(error => {
+      console.error('Error playing audio:', error);
+      updatePlayPauseButton(true);
+    });
+
+  showAudioControls();
+}
+
+function updatePlayPauseButton(showPlay) {
   const playIcon = document.querySelector('.play-icon');
   const pauseIcon = document.querySelector('.pause-icon');
 
-  if (audioPlayer && playIcon && pauseIcon) {
-    // Check if the audio source is valid before playing
-    if (!audioPlayer.src || audioPlayer.src === window.location.href) {
-      console.log('No valid audio source set. Loading current ayah audio...');
-      // Load audio for current ayah
-      if (loadAndDisplayAyah(currentAyahNumber)) {
-        // Small delay to ensure audio is loaded
-        setTimeout(() => audioPlayer.play()
-          .then(() => {
-            playIcon.style.display = 'none';
-            pauseIcon.style.display = 'block';
-          })
-          .catch(error => {
-            console.error('Error playing audio:', error);
-          }), 300);
-        return;
-      }
-    }
+  if (playIcon && pauseIcon) {
+    playIcon.style.display = showPlay ? 'block' : 'none';
+    pauseIcon.style.display = showPlay ? 'none' : 'block';
+  }
+}
 
-    // If we have a valid source already, proceed normally
-    audioPlayer.play()
-      .then(() => {
-        // Update UI when successfully started playing
-        playIcon.style.display = 'none';
-        pauseIcon.style.display = 'block';
-      })
-      .catch(error => {
-        console.error('Error auto-playing audio:', error);
-      });
+function showAudioControls(resetTimeout = true) {
+  const audioContainer = document.querySelector('.audio-container');
+  if (!audioContainer) return;
+
+  audioContainer.classList.add('visible');
+
+  if (resetTimeout) {
+    clearTimeout(audioControlsTimeout);
+    audioControlsTimeout = setTimeout(() => {
+      if (!isUserInteractingWithAudio) {
+        audioContainer.classList.remove('visible');
+      }
+    }, 2500);
   }
 }
 
 // NAVIGATION MODULE
-function navigateToNextAyah() {
-  try {
-    const surahSelect = document.getElementById('surah-select');
-    const ayahSelect = document.getElementById('ayah-select');
+function navigate(direction) {
+  const surahSelect = document.getElementById('surah-select');
+  const ayahSelect = document.getElementById('ayah-select');
+  if (!surahSelect || !ayahSelect) return;
 
-    if (!surahSelect || !ayahSelect) return;
+  let currentSurah = parseInt(surahSelect.value);
+  let currentAyah = parseInt(ayahSelect.value);
 
-    let currentSurah = parseInt(surahSelect.value);
-    let currentAyah = parseInt(ayahSelect.value);
-    let totalAyahs = ayahSelect.options.length - 1; // Account for the placeholder option
-
-    // If we're at the last ayah of the current surah
-    if (currentAyah >= totalAyahs) {
-      // If we're at the last surah, wrap around to the first surah
-      if (currentSurah >= 114) {
-        currentSurah = 1;
-      } else {
-        currentSurah++;
-      }
-
-      // Update the surah dropdown
-      surahSelect.value = currentSurah;
-
-      // Trigger the change event to load the ayahs for this surah
-      surahSelect.dispatchEvent(new Event('change'));
-
-      // Select the first ayah of the next surah
-      setTimeout(() => {
-        ayahSelect.selectedIndex = 1; // First ayah (index 0 is the placeholder)
-        ayahSelect.dispatchEvent(new Event('change'));
-        // Play the audio after selection
-        playAudioAfterAyahChange();
-      }, 300);
+  if (direction === 'next') {
+    if (currentAyah >= ayahSelect.options.length - 1) {
+      // Move to next surah
+      currentSurah = currentSurah >= 114 ? 1 : currentSurah + 1;
+      currentAyah = 1;
     } else {
-      // Simply go to the next ayah in the current surah
-      ayahSelect.value = currentAyah + 1;
-      ayahSelect.dispatchEvent(new Event('change'));
-      // Play the audio
-      playAudioAfterAyahChange();
+      // Move to next ayah in current surah
+      currentAyah++;
     }
-  } catch (error) {
-    console.error('Error navigating to next ayah:', error);
-  }
-}
-
-function navigateToPreviousAyah() {
-  try {
-    const surahSelect = document.getElementById('surah-select');
-    const ayahSelect = document.getElementById('ayah-select');
-
-    if (!surahSelect || !ayahSelect) return;
-
-    let currentSurah = parseInt(surahSelect.value);
-    let currentAyah = parseInt(ayahSelect.value);
-
-    // If we're at the first ayah of the current surah
+  } else {
     if (currentAyah <= 1) {
-      // If we're at Surah 1, wrap around to the last surah
-      if (currentSurah <= 1) {
-        currentSurah = 114; // Last surah in the Quran
-      } else {
-        currentSurah--;
-      }
-
-      // Update the surah dropdown
-      surahSelect.value = currentSurah;
-
-      // Trigger the change event to load the ayahs for this surah
-      surahSelect.dispatchEvent(new Event('change'));
-
-      // Select the last ayah of the previous surah (will be populated after the event)
-      setTimeout(() => {
-        if (ayahSelect.options.length > 0) {
-          ayahSelect.selectedIndex = ayahSelect.options.length - 1;
-          ayahSelect.dispatchEvent(new Event('change'));
-          // Play the audio after selection
-          playAudioAfterAyahChange();
-        }
-      }, 300);
+      // Move to previous surah
+      currentSurah = currentSurah <= 1 ? 114 : currentSurah - 1;
+      // Select last ayah (will be set after surah change)
+      currentAyah = -1; // Flag for last ayah
     } else {
-      // Simply go to the previous ayah in the current surah
-      ayahSelect.value = currentAyah - 1;
-      ayahSelect.dispatchEvent(new Event('change'));
-      // Play the audio
-      playAudioAfterAyahChange();
+      // Move to previous ayah in current surah
+      currentAyah--;
     }
-  } catch (error) {
-    console.error('Error navigating to previous ayah:', error);
   }
-}
 
-function playAudioAfterAyahChange() {
-  setTimeout(() => {
-    const audioElement = document.getElementById('ayah-audio-player');
-    if (audioElement && audioElement.src && audioElement.src !== window.location.href) {
-      // Update the play/pause button appearance
-      const playIcon = document.querySelector('.play-icon');
-      const pauseIcon = document.querySelector('.pause-icon');
+  // Update surah if changed
+  if (currentSurah !== parseInt(surahSelect.value)) {
+    surahSelect.value = currentSurah;
+    surahSelect.dispatchEvent(new Event('change'));
 
-      if (playIcon) playIcon.style.display = 'none';
-      if (pauseIcon) pauseIcon.style.display = 'block';
-
-      // Play the audio
-      const playPromise = audioElement.play();
-
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          // Auto-play was prevented
-          if (playIcon) playIcon.style.display = 'block';
-          if (pauseIcon) pauseIcon.style.display = 'none';
-        });
-      }
-
-      // Show the controls
-      const audioContainer = document.querySelector('.audio-container');
-      if (audioContainer) {
-        audioContainer.classList.add('visible');
-      }
+    // If we need to select the last ayah, do it after the ayah dropdown is populated
+    if (currentAyah === -1) {
+      setTimeout(() => {
+        ayahSelect.selectedIndex = ayahSelect.options.length - 1;
+        ayahSelect.dispatchEvent(new Event('change'));
+        // Add auto-play after navigation completes
+        setTimeout(() => playAudio(), 500);
+      }, 300);
+      return;
     }
-  }, 500); // Small delay to ensure audio is loaded
+  }
+
+  // Update ayah
+  ayahSelect.value = currentAyah;
+  ayahSelect.dispatchEvent(new Event('change'));
+
+  // Add auto-play after navigation
+  setTimeout(() => playAudio(), 500);
 }
 
 // LOCAL STORAGE MODULE
@@ -645,83 +574,37 @@ function handleSurahChange() {
 function handleAyahChange() {
   const surahSelect = document.getElementById('surah-select');
   const ayahSelect = document.getElementById('ayah-select');
-  const verseContainer = document.getElementById('verse-container');
-  const arabicTextElement = document.getElementById('arabic-text');
-  const translationElement = document.getElementById('translation-text');
-  const verseMetaElement = document.getElementById('verse-meta');
 
   const selectedSurahNumber = surahSelect.value;
   const selectedAyahNumber = ayahSelect.value;
 
-  if (!selectedSurahNumber || !selectedAyahNumber) {
-    return;
-  }
+  if (!selectedSurahNumber || !selectedAyahNumber) return;
 
-  // Save the selection to local storage
+  // Save the selection
   saveSelectionsToLocalStorage(selectedSurahNumber, selectedAyahNumber);
 
-  // Ensure the verse container is visible
-  if (verseContainer) {
-    verseContainer.style.display = 'block';
-    verseContainer.style.opacity = '1';
-  }
+  // Show loading state
+  const arabicTextElement = document.getElementById('arabic-text');
+  const translationElement = document.getElementById('translation-text');
 
-  // Display loading state
-  if (arabicTextElement) {
-    arabicTextElement.innerHTML = 'Loading Arabic text...';
-  }
+  if (arabicTextElement) arabicTextElement.innerHTML = 'Loading Arabic text...';
+  if (translationElement) translationElement.textContent = 'Loading translation...';
 
-  if (translationElement) {
-    translationElement.textContent = 'Loading translation...';
-  }
-
-  // Calculate the global ayah number for audio playback
+  // Calculate global ayah number
   const globalAyahNumber = calculateGlobalAyahNumber(selectedSurahNumber, selectedAyahNumber);
   currentAyahNumber = globalAyahNumber;
 
-  // Play the audio for the selected ayah
+  // Load audio without playing
   playAyahAudio(globalAyahNumber);
 
-  // Make the API call to fetch verse data
+  // Fetch verse data
   fetchQuranVerse(selectedSurahNumber, selectedAyahNumber)
     .then(verseData => {
       if (!verseData.error) {
-        // Display Arabic text
-        if (arabicTextElement) {
-          arabicTextElement.innerHTML = verseData.arabic;
-        }
-
-        // Display translation
-        if (translationElement) {
-          translationElement.textContent = verseData.english || 'Translation not available';
-        }
-
-        // Display metadata if available
-        if (verseMetaElement && verseData.meta) {
-          verseMetaElement.innerHTML = `
-            <div class="meta-item">Juz ${verseData.meta.juz}</div>
-            <div class="meta-item">Page ${verseData.meta.page}</div>
-            <div class="meta-item">Hizb ${Math.ceil(verseData.meta.hizbQuarter / 4)}.${verseData.meta.hizbQuarter % 4 === 0 ? 4 : verseData.meta.hizbQuarter % 4}</div>
-          `;
-        }
-
-        // Add the fade-in animation when a new verse is displayed
-        if (verseContainer) {
-          verseContainer.classList.add('verse-fade-in');
-
-          // Remove the class after animation completes
-          setTimeout(() => {
-            verseContainer.classList.remove('verse-fade-in');
-          }, 1000);
-        }
-
-        // Now also update the metadata in the settings panel
-        updateAyahMetadata(verseData.meta);
+        updateUI(selectedSurahNumber, selectedAyahNumber, verseData);
       }
     })
-    .catch(error => {
-      console.error("Error fetching verse:", error);
-    });
+    .catch(error => console.error("Error fetching verse:", error));
 }
 
 function handleMouseMove(e) {
@@ -760,20 +643,15 @@ function initCustomAudioPlayer() {
 
   // Add event listeners
   if (playPauseBtn) playPauseBtn.addEventListener('click', togglePlayPause);
-  if (prevAyahBtn) prevAyahBtn.addEventListener('click', navigateToPreviousAyah);
-  if (nextAyahBtn) nextAyahBtn.addEventListener('click', navigateToNextAyah);
+  if (prevAyahBtn) prevAyahBtn.addEventListener('click', () => navigate('prev'));
+  if (nextAyahBtn) nextAyahBtn.addEventListener('click', () => navigate('next'));
 
   // Handle audio end
   if (audioElement) {
     audioElement.addEventListener('ended', () => {
-      const playIcon = document.querySelector('.play-icon');
-      const pauseIcon = document.querySelector('.pause-icon');
-
-      if (playIcon) playIcon.style.display = 'block';
-      if (pauseIcon) pauseIcon.style.display = 'none';
-
-      // Auto-play next ayah when current one finishes
-      navigateToNextAyah();
+      console.log('Audio ended, navigating to next ayah');
+      updatePlayPauseButton(true);
+      navigate('next');
     });
   }
 
