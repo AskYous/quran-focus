@@ -1,3 +1,4 @@
+// DATA STRUCTURES MODULE
 // Quran structure data - Surah names and their Ayah counts
 const quranData = [
   { number: 1, name: "Al-Fatihah (The Opening)", ayahCount: 7 },
@@ -116,7 +117,7 @@ const quranData = [
   { number: 114, name: "An-Nas (Mankind)", ayahCount: 6 }
 ];
 
-// Reciter configuration - can be easily extended with more reciters
+// CONFIGURATION MODULE
 const RECITER = {
   shuraym: {
     id: "ar.saoodshuraym",
@@ -125,7 +126,7 @@ const RECITER = {
   }
 };
 
-// Function to fetch Quran verses from API
+// API & DATA ACCESS MODULE
 async function fetchQuranVerse(surahNumber, ayahNumber) {
   console.log(`Fetching verse data for Surah ${surahNumber}, Ayah ${ayahNumber}`);
 
@@ -159,7 +160,7 @@ async function fetchQuranVerse(surahNumber, ayahNumber) {
   }
 }
 
-// Function to play the ayah audio using Shuraym's recitation
+// AUDIO CONTROL MODULE
 function playAyahAudio(ayahNumber) {
   try {
     // Calculate the global ayah number (required for the CDN)
@@ -202,145 +203,57 @@ function playAyahAudio(ayahNumber) {
   return false;
 }
 
-// Function to calculate global ayah number from surah and ayah
-function calculateGlobalAyahNumber(surahNumber, ayahNumber) {
-  surahNumber = parseInt(surahNumber);
-  ayahNumber = parseInt(ayahNumber);
+function loadAyahAudio(ayahData) {
+  const audioElement = document.getElementById('ayah-audio-player');
 
-  // Initialize the counter with the ayah number
-  let globalAyahNumber = ayahNumber;
+  if (audioElement && ayahData && ayahData.audioUrl) {
+    // Set the src and load
+    audioElement.src = ayahData.audioUrl;
+    audioElement.load();
 
-  // Add all ayahs from previous surahs
-  for (let i = 1; i < surahNumber; i++) {
-    const surah = quranData.find(s => s.number === i);
-    if (surah) {
-      globalAyahNumber += surah.ayahCount;
+    // Show the controls when a new ayah is loaded
+    const audioContainer = document.querySelector('.audio-container');
+    if (audioContainer) {
+      audioContainer.classList.add('visible');
     }
-  }
 
-  return globalAyahNumber;
-}
-
-// Function to save selections to local storage
-function saveSelectionsToLocalStorage(surahNumber, ayahNumber) {
-  try {
-    localStorage.setItem('quranMeditationSpace_surah', surahNumber);
-    localStorage.setItem('quranMeditationSpace_ayah', ayahNumber);
-    console.log('Selections saved to local storage:', { surah: surahNumber, ayah: ayahNumber });
-  } catch (error) {
-    console.error('Error saving to local storage:', error);
+    // If auto-play is desired when loading an ayah directly (not just navigation)
+    // Uncomment the next line:
+    // playAudioAfterAyahChange();
   }
 }
 
-// Function to load selections from local storage
-function loadSelectionsFromLocalStorage() {
-  try {
-    const savedSurah = localStorage.getItem('quranMeditationSpace_surah');
-    const savedAyah = localStorage.getItem('quranMeditationSpace_ayah');
-    return {
-      surah: savedSurah ? savedSurah : "1",
-      ayah: savedAyah ? savedAyah : "1"
-    };
-  } catch (error) {
-    console.error('Error loading from local storage:', error);
-    return { surah: "1", ayah: "1" }; // Default values
-  }
-}
+function playAudioAfterAyahChange() {
+  setTimeout(() => {
+    const audioElement = document.getElementById('ayah-audio-player');
+    if (audioElement && audioElement.src && audioElement.src !== window.location.href) {
+      // Update the play/pause button appearance
+      const playIcon = document.querySelector('.play-icon');
+      const pauseIcon = document.querySelector('.pause-icon');
 
-// Track the current ayah being displayed/played
-let currentAyahNumber = 1; // Default to first ayah
+      if (playIcon) playIcon.style.display = 'none';
+      if (pauseIcon) pauseIcon.style.display = 'block';
 
-// Function to load and display an ayah by its number
-function loadAndDisplayAyah(ayahNumber) {
-  // Validate the ayah number
-  if (!ayahNumber || isNaN(parseInt(ayahNumber))) {
-    console.error('Invalid ayah number:', ayahNumber);
-    return false;
-  }
+      // Play the audio
+      const playPromise = audioElement.play();
 
-  // Convert to integer and store as current ayah
-  const ayahNum = parseInt(ayahNumber);
-  currentAyahNumber = ayahNum;
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          // Auto-play was prevented
+          if (playIcon) playIcon.style.display = 'block';
+          if (pauseIcon) pauseIcon.style.display = 'none';
+        });
+      }
 
-  console.log(`Loading ayah number ${currentAyahNumber}`);
-
-  // Update UI to reflect the current ayah
-  updateAyahSelectors(currentAyahNumber);
-
-  // Fetch and display the ayah text
-  fetchAndDisplayAyahText(currentAyahNumber);
-
-  // Load the audio for this ayah
-  return playAyahAudio(currentAyahNumber);
-}
-
-// Update selectors to match the current ayah
-function updateAyahSelectors(globalAyahNumber) {
-  // Calculate surah and ayah within surah from global ayah number
-  const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(globalAyahNumber);
-
-  // Update the dropdown selectors
-  const surahSelect = document.getElementById('surah-select');
-  const ayahSelect = document.getElementById('ayah-select');
-
-  if (surahSelect && ayahSelect) {
-    // Set the surah selector
-    surahSelect.value = surahNumber;
-
-    // Rebuild ayah options for this surah
-    populateAyahSelect(surahNumber);
-
-    // Set the ayah selector
-    ayahSelect.value = ayahWithinSurah;
-  }
-}
-
-// Navigate to next ayah
-function goToNextAyah() {
-  // Calculate the next ayah number
-  const nextAyahNumber = currentAyahNumber + 1;
-
-  // Check if next ayah exists (total Quran ayahs: 6236)
-  if (nextAyahNumber <= 6236) {
-    loadAndDisplayAyah(nextAyahNumber);
-    // After loading the next ayah, play it if auto-play is enabled
-    const audioPlayer = document.getElementById('ayah-audio-player');
-    if (audioPlayer) {
-      // Optional: auto-play when navigating to next ayah
-      playAudio();
+      // Show the controls
+      const audioContainer = document.querySelector('.audio-container');
+      if (audioContainer) {
+        audioContainer.classList.add('visible');
+      }
     }
-  }
+  }, 500); // Small delay to ensure audio is loaded
 }
 
-// Navigate to previous ayah
-function goToPreviousAyah() {
-  // Calculate the previous ayah number
-  const prevAyahNumber = currentAyahNumber - 1;
-
-  // Check if previous ayah exists
-  if (prevAyahNumber >= 1) {
-    loadAndDisplayAyah(prevAyahNumber);
-    // After loading the previous ayah, play it if auto-play is enabled
-    const audioPlayer = document.getElementById('ayah-audio-player');
-    if (audioPlayer) {
-      // Optional: auto-play when navigating to previous ayah
-      playAudio();
-    }
-  }
-}
-
-// Event listener for audio ending - go to next ayah automatically
-function setupAudioEndedListener() {
-  const audioPlayer = document.getElementById('ayah-audio-player');
-  if (audioPlayer) {
-    audioPlayer.addEventListener('ended', () => {
-      console.log('Audio ended, moving to next ayah');
-      goToNextAyah();
-    });
-  }
-}
-
-// Update the playAudio function
 function playAudio() {
   const audioPlayer = document.getElementById('ayah-audio-player');
   const playIcon = document.querySelector('.play-icon');
@@ -378,390 +291,307 @@ function playAudio() {
   }
 }
 
-// Initialize audio controls
-function initializeAudioControls() {
-  // Set up play/pause button
-  const playPauseBtn = document.getElementById('play-pause-btn');
-  if (playPauseBtn) {
-    playPauseBtn.addEventListener('click', togglePlayPause);
+function togglePlayPause() {
+  const audioPlayer = document.getElementById('ayah-audio-player');
+  const playIcon = document.querySelector('.play-icon');
+  const pauseIcon = document.querySelector('.pause-icon');
+
+  if (audioPlayer && playIcon && pauseIcon) {
+    if (audioPlayer.paused) {
+      playAudio();
+    } else {
+      audioPlayer.pause();
+      playIcon.style.display = 'block';
+      pauseIcon.style.display = 'none';
+    }
   }
-
-  // Set up next/previous buttons
-  const nextBtn = document.getElementById('next-ayah-btn');
-  const prevBtn = document.getElementById('prev-ayah-btn');
-
-  if (nextBtn) {
-    nextBtn.addEventListener('click', goToNextAyah);
-  }
-
-  if (prevBtn) {
-    prevBtn.addEventListener('click', goToPreviousAyah);
-  }
-
-  // Set up audio ended listener
-  setupAudioEndedListener();
-
-  // Load the first ayah when page loads
-  loadAndDisplayAyah(1);
 }
 
-// Call this function when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-  // Initialize particles.js
-  if (typeof window.particlesJS !== 'undefined') {
-    window.particlesJS.load('particles-js', 'particles.json', function () {
-      console.log('Particles.js loaded successfully');
-    });
+// NAVIGATION MODULE
+function navigateToPreviousAyah() {
+  try {
+    const surahSelect = document.getElementById('surah-select');
+    const ayahSelect = document.getElementById('ayah-select');
+
+    if (!surahSelect || !ayahSelect) return;
+
+    let currentSurah = parseInt(surahSelect.value);
+    let currentAyah = parseInt(ayahSelect.value);
+
+    // If we're at the first ayah of the current surah
+    if (currentAyah <= 1) {
+      // If we're at Surah 1, wrap around to the last surah
+      if (currentSurah <= 1) {
+        currentSurah = 114; // Last surah in the Quran
+      } else {
+        currentSurah--;
+      }
+
+      // Update the surah dropdown
+      surahSelect.value = currentSurah;
+
+      // Trigger the change event to load the ayahs for this surah
+      const event = new Event('change');
+      surahSelect.dispatchEvent(event);
+
+      // Select the last ayah of the previous surah (will be populated after the event)
+      setTimeout(() => {
+        if (ayahSelect.options.length > 0) {
+          ayahSelect.selectedIndex = ayahSelect.options.length - 1;
+          ayahSelect.dispatchEvent(new Event('change'));
+          // Play the audio after selection
+          playAudioAfterAyahChange();
+        }
+      }, 300);
+    } else {
+      // Simply go to the previous ayah in the current surah
+      ayahSelect.value = currentAyah - 1;
+      ayahSelect.dispatchEvent(new Event('change'));
+      // Play the audio
+      playAudioAfterAyahChange();
+    }
+  } catch (error) {
+    console.error('Error navigating to previous ayah:', error);
+  }
+}
+
+function navigateToNextAyah() {
+  try {
+    const surahSelect = document.getElementById('surah-select');
+    const ayahSelect = document.getElementById('ayah-select');
+
+    if (!surahSelect || !ayahSelect) return;
+
+    let currentSurah = parseInt(surahSelect.value);
+    let currentAyah = parseInt(ayahSelect.value);
+    let totalAyahs = ayahSelect.options.length - 1; // Account for the placeholder option
+
+    // If we're at the last ayah of the current surah
+    if (currentAyah >= totalAyahs) {
+      // If we're at the last surah, wrap around to the first surah
+      if (currentSurah >= 114) {
+        currentSurah = 1;
+      } else {
+        currentSurah++;
+      }
+
+      // Update the surah dropdown
+      surahSelect.value = currentSurah;
+
+      // Trigger the change event to load the ayahs for this surah
+      const event = new Event('change');
+      surahSelect.dispatchEvent(event);
+
+      // Select the first ayah of the next surah
+      setTimeout(() => {
+        ayahSelect.selectedIndex = 1; // First ayah (index 0 is the placeholder)
+        ayahSelect.dispatchEvent(new Event('change'));
+        // Play the audio after selection
+        playAudioAfterAyahChange();
+      }, 300);
+    } else {
+      // Simply go to the next ayah in the current surah
+      ayahSelect.value = currentAyah + 1;
+      ayahSelect.dispatchEvent(new Event('change'));
+      // Play the audio
+      playAudioAfterAyahChange();
+    }
+  } catch (error) {
+    console.error('Error navigating to next ayah:', error);
+  }
+}
+
+function goToPreviousAyah() {
+  // Calculate the previous ayah number
+  const prevAyahNumber = currentAyahNumber - 1;
+
+  // Check if previous ayah exists
+  if (prevAyahNumber >= 1) {
+    loadAndDisplayAyah(prevAyahNumber);
+    // After loading the previous ayah, play it if auto-play is enabled
+    const audioPlayer = document.getElementById('ayah-audio-player');
+    if (audioPlayer) {
+      // Optional: auto-play when navigating to previous ayah
+      playAudio();
+    }
+  }
+}
+
+function goToNextAyah() {
+  // Calculate the next ayah number
+  const nextAyahNumber = currentAyahNumber + 1;
+
+  // Check if next ayah exists (total Quran ayahs: 6236)
+  if (nextAyahNumber <= 6236) {
+    loadAndDisplayAyah(nextAyahNumber);
+    // After loading the next ayah, play it if auto-play is enabled
+    const audioPlayer = document.getElementById('ayah-audio-player');
+    if (audioPlayer) {
+      // Optional: auto-play when navigating to next ayah
+      playAudio();
+    }
+  }
+}
+
+// UTILITY MODULE
+function calculateGlobalAyahNumber(surahNumber, ayahNumber) {
+  surahNumber = parseInt(surahNumber);
+  ayahNumber = parseInt(ayahNumber);
+
+  // Initialize the counter with the ayah number
+  let globalAyahNumber = ayahNumber;
+
+  // Add all ayahs from previous surahs
+  for (let i = 1; i < surahNumber; i++) {
+    const surah = quranData.find(s => s.number === i);
+    if (surah) {
+      globalAyahNumber += surah.ayahCount;
+    }
   }
 
-  // Get DOM elements
+  return globalAyahNumber;
+}
+
+function calculateSurahAndAyah(globalAyahNumber) {
+  let surahNumber = 1;
+  let ayahWithinSurah = globalAyahNumber;
+
+  // Find which surah this global ayah belongs to
+  for (let i = 0; i < quranData.length; i++) {
+    if (ayahWithinSurah <= quranData[i].ayahCount) {
+      // Found the surah
+      surahNumber = quranData[i].number;
+      break;
+    }
+    // Otherwise subtract this surah's ayahs and continue to next surah
+    ayahWithinSurah -= quranData[i].ayahCount;
+  }
+
+  return { surahNumber, ayahWithinSurah };
+}
+
+function getSurahAyahCount(surahNum) {
+  const surah = quranData.find(s => s.number === surahNum);
+  return surah ? surah.ayahCount : 0;
+}
+
+// LOCAL STORAGE MODULE
+function saveSelectionsToLocalStorage(surahNumber, ayahNumber) {
+  try {
+    localStorage.setItem('quranMeditationSpace_surah', surahNumber);
+    localStorage.setItem('quranMeditationSpace_ayah', ayahNumber);
+    console.log('Selections saved to local storage:', { surah: surahNumber, ayah: ayahNumber });
+  } catch (error) {
+    console.error('Error saving to local storage:', error);
+  }
+}
+
+function loadSelectionsFromLocalStorage() {
+  try {
+    const savedSurah = localStorage.getItem('quranMeditationSpace_surah');
+    const savedAyah = localStorage.getItem('quranMeditationSpace_ayah');
+    return {
+      surah: savedSurah ? savedSurah : "1",
+      ayah: savedAyah ? savedAyah : "1"
+    };
+  } catch (error) {
+    console.error('Error loading from local storage:', error);
+    return { surah: "1", ayah: "1" }; // Default values
+  }
+}
+
+// UI UPDATE MODULE
+function updateAyahMetadata(ayahData) {
+  // Make sure we have valid ayah data
+  if (!ayahData) return;
+
+  // Get ONLY the metadata elements in the settings panel
+  const juzInfo = document.getElementById('juz-info'); // This should be in the settings panel
+  const pageInfo = document.getElementById('page-info'); // This should be in the settings panel
+  const hizbInfo = document.getElementById('hizb-info'); // This should be in the settings panel
+
+  // Don't try to update elements that should have been removed
+  // const juzDisplay = document.getElementById('juz-display'); // Remove this if it was in main UI
+  // const pageDisplay = document.getElementById('page-display'); // Remove this if it was in main UI
+  // const hizbDisplay = document.getElementById('hizb-display'); // Remove this if it was in main UI
+
+  // Update only the settings panel metadata
+  if (juzInfo) juzInfo.textContent = ayahData.juz || '-';
+  if (pageInfo) pageInfo.textContent = ayahData.page || '-';
+  if (hizbInfo) hizbInfo.textContent = ayahData.hizbQuarter ?
+    `${Math.floor(ayahData.hizbQuarter / 4) + 1}:${ayahData.hizbQuarter % 4 || 4}` : '-';
+}
+
+function updateAyahSelectors(globalAyahNumber) {
+  // Calculate surah and ayah within surah from global ayah number
+  const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(globalAyahNumber);
+
+  // Update the dropdown selectors
   const surahSelect = document.getElementById('surah-select');
   const ayahSelect = document.getElementById('ayah-select');
-  const referenceText = document.getElementById('selected-reference-text');
-  const quranSelector = document.querySelector('.quran-selector');
-  const glowElements = document.querySelectorAll('.ambient-glow');
-  const verseContainer = document.getElementById('verse-container');
-  const arabicTextElement = document.getElementById('arabic-text');
-  const translationElement = document.getElementById('translation-text');
-  const verseMetaElement = document.getElementById('verse-meta');
 
-  console.log("DOM elements found:", {
-    surahSelect: !!surahSelect,
-    ayahSelect: !!ayahSelect,
-    verseContainer: !!verseContainer,
-    arabicTextElement: !!arabicTextElement,
-    translationElement: !!translationElement,
-    verseMetaElement: !!verseMetaElement
-  });
+  if (surahSelect && ayahSelect) {
+    // Set the surah selector
+    surahSelect.value = surahNumber;
 
-  // Populate Surah dropdown with a smooth loading effect
-  setTimeout(() => {
-    populateSurahDropdown();
+    // Rebuild ayah options for this surah
+    populateAyahSelect(surahNumber);
 
-    // Set default values after dropdown is populated
+    // Set the ayah selector
+    ayahSelect.value = ayahWithinSurah;
+  }
+}
+
+function populateSurahDropdown() {
+  const surahSelect = document.getElementById('surah-select');
+  if (!surahSelect) return;
+
+  let delay = 0;
+
+  quranData.forEach((surah, index) => {
     setTimeout(() => {
-      setDefaultSelections();
-    }, quranData.length * 5 + 100); // Wait until all options are loaded
-  }, 500);
+      const option = document.createElement('option');
+      option.value = String(surah.number);
+      option.textContent = `${surah.number}. ${surah.name}`;
+      surahSelect.appendChild(option);
 
-  function populateSurahDropdown() {
-    let delay = 0;
-
-    if (surahSelect) {
-      quranData.forEach((surah, index) => {
-        setTimeout(() => {
-          const option = document.createElement('option');
-          option.value = String(surah.number);
-          option.textContent = `${surah.number}. ${surah.name}`;
-          surahSelect.appendChild(option);
-
-          // When all items are loaded, add a subtle fade-in effect
-          if (index === quranData.length - 1) {
-            surahSelect.classList.add('loaded');
-          }
-        }, delay);
-
-        // Add a small delay for each item for a smooth cascading effect
-        delay += 5;
-      });
-    }
-  }
-
-  // Function to set default values for Surah and Ayah
-  function setDefaultSelections() {
-    // Load from local storage or use defaults
-    const savedSelections = loadSelectionsFromLocalStorage();
-
-    // Default to Surah Al-Fatihah (1) or saved selection
-    if (surahSelect && surahSelect.options.length > 1) {
-      // Select the Surah from local storage or default to Al-Fatihah
-      surahSelect.value = savedSelections.surah;
-
-      // Trigger the change event to populate Ayah dropdown
-      const changeEvent = new Event('change', { bubbles: true });
-      surahSelect.dispatchEvent(changeEvent);
-
-      // Set a timeout to select the Ayah after Ayah dropdown is populated
-      setTimeout(() => {
-        if (ayahSelect && ayahSelect.options.length > 1) {
-          // Try to set ayah from local storage, but check if it's in range
-          const surahNumber = parseInt(savedSelections.surah);
-          const selectedSurah = quranData.find(surah => surah.number === surahNumber);
-
-          if (selectedSurah) {
-            const savedAyahNumber = parseInt(savedSelections.ayah);
-            // Make sure the saved ayah is within range for this surah
-            if (savedAyahNumber > 0 && savedAyahNumber <= selectedSurah.ayahCount) {
-              ayahSelect.value = savedSelections.ayah;
-            } else {
-              // If out of range, default to the first ayah
-              ayahSelect.value = "1";
-            }
-          } else {
-            // If surah not found, default to the first ayah
-            ayahSelect.value = "1";
-          }
-
-          // Trigger the change event to load the verse and play audio
-          ayahSelect.dispatchEvent(new Event('change', { bubbles: true }));
-
-          // Also calculate and play the audio for the initially loaded Ayah
-          if (savedSelections.surah && savedSelections.ayah) {
-            const globalAyahNumber = calculateGlobalAyahNumber(savedSelections.surah, savedSelections.ayah);
-            playAyahAudio(globalAyahNumber);
-          }
-        }
-      }, 700); // Wait for Ayah dropdown to be populated
-    }
-  }
-
-  // Handle Surah selection change
-  if (surahSelect) {
-    surahSelect.addEventListener('change', function () {
-      const selectedSurahNumber = parseInt(this.value);
-
-      // Add subtle animation effect to the container
-      if (quranSelector) {
-        quranSelector.classList.add('changing');
+      // When all items are loaded, add a subtle fade-in effect
+      if (index === quranData.length - 1) {
+        surahSelect.classList.add('loaded');
       }
+    }, delay);
 
-      // Update glow elements position randomly
-      updateGlowElements();
-
-      // Clear and disable Ayah dropdown if no Surah is selected
-      if (!selectedSurahNumber) {
-        if (ayahSelect) {
-          ayahSelect.innerHTML = '<option value="">--Please select a Surah first--</option>';
-          ayahSelect.disabled = true;
-        }
-        if (referenceText) {
-          referenceText.textContent = 'Please select a Surah and Ayah to see the reference.';
-        }
-        if (quranSelector) {
-          quranSelector.classList.remove('changing');
-        }
-
-        // Hide verse container if no surah selected
-        if (verseContainer) {
-          verseContainer.classList.remove('visible');
-        }
-        return;
-      }
-
-      // Save selection to local storage (without ayah yet)
-      saveSelectionsToLocalStorage(selectedSurahNumber, "1");
-
-      // Find the selected Surah data
-      const selectedSurah = quranData.find(surah => surah.number === selectedSurahNumber);
-
-      // Add loading animation
-      if (referenceText) {
-        referenceText.innerHTML = 'Loading <span class="loading-dots"><span></span><span></span><span></span></span>';
-      }
-
-      // Simulate loading delay for a smoother experience
-      setTimeout(() => {
-        if (ayahSelect && selectedSurah) {
-          // Enable and populate Ayah dropdown
-          ayahSelect.innerHTML = '<option value="">--Please select an Ayah--</option>';
-          for (let i = 1; i <= selectedSurah.ayahCount; i++) {
-            const option = document.createElement('option');
-            option.value = String(i);
-            option.textContent = `Ayah ${i}`;
-            ayahSelect.appendChild(option);
-          }
-
-          ayahSelect.disabled = false;
-
-          // Automatically select the first Ayah (index 1 since we have an empty option at index 0)
-          if (ayahSelect.options.length > 1) {
-            ayahSelect.selectedIndex = 1; // Select the first Ayah (option at index 1)
-
-            // Manually trigger the change event to load the verse
-            const changeEvent = new Event('change', { bubbles: true });
-            ayahSelect.dispatchEvent(changeEvent);
-          } else {
-            // If no Ayahs were populated, update reference text accordingly
-            if (referenceText) {
-              referenceText.textContent = `Selected Surah: ${selectedSurah.name}. Please select an Ayah.`;
-            }
-          }
-        }
-
-        // Remove animation class
-        if (quranSelector) {
-          quranSelector.classList.remove('changing');
-        }
-      }, 600);
-    });
-  }
-
-  // Handle Ayah selection change
-  if (ayahSelect) {
-    ayahSelect.addEventListener('change', function () {
-      console.log("Ayah selection changed");
-      const selectedSurahNumber = surahSelect.value;
-      const selectedAyahNumber = ayahSelect.value;
-
-      console.log("Selected Surah:", selectedSurahNumber, "Selected Ayah:", selectedAyahNumber);
-
-      if (!selectedSurahNumber || !selectedAyahNumber) {
-        console.log("No selection made, returning early");
-        return;
-      }
-
-      // Save the selection to local storage
-      saveSelectionsToLocalStorage(selectedSurahNumber, selectedAyahNumber);
-
-      // Ensure the verse container is visible
-      if (verseContainer) {
-        verseContainer.style.display = 'block';
-        verseContainer.style.opacity = '1';
-        console.log("Verse container should be visible now");
-      }
-
-      // Display loading state
-      if (arabicTextElement) {
-        arabicTextElement.innerHTML = 'Loading Arabic text...';
-        console.log("Set loading message for Arabic text");
-      }
-
-      if (translationElement) {
-        translationElement.textContent = 'Loading translation...';
-      }
-
-      // Calculate the global ayah number for audio playback
-      const globalAyahNumber = calculateGlobalAyahNumber(selectedSurahNumber, selectedAyahNumber);
-
-      // Play the audio for the selected ayah
-      playAyahAudio(globalAyahNumber);
-
-      // Make the API call to fetch verse data
-      fetchQuranVerse(selectedSurahNumber, selectedAyahNumber)
-        .then(verseData => {
-          console.log("Verse data received:", verseData);
-
-          if (!verseData.error) {
-            // Display Arabic text
-            if (arabicTextElement) {
-              console.log("Setting Arabic text:", verseData.arabic);
-              arabicTextElement.innerHTML = verseData.arabic;
-            }
-
-            // Display translation
-            if (translationElement) {
-              translationElement.textContent = verseData.english || 'Translation not available';
-            }
-
-            // Display metadata if available
-            if (verseMetaElement && verseData.meta) {
-              verseMetaElement.innerHTML = `
-                <div class="meta-item">Juz ${verseData.meta.juz}</div>
-                <div class="meta-item">Page ${verseData.meta.page}</div>
-                <div class="meta-item">Hizb ${Math.ceil(verseData.meta.hizbQuarter / 4)}.${verseData.meta.hizbQuarter % 4 === 0 ? 4 : verseData.meta.hizbQuarter % 4}</div>
-              `;
-            }
-
-            // Add the fade-in animation when a new verse is displayed
-            if (verseContainer) {
-              verseContainer.classList.add('verse-fade-in');
-
-              // Remove the class after animation completes
-              setTimeout(() => {
-                verseContainer.classList.remove('verse-fade-in');
-              }, 1000);
-            }
-
-            // Now also update the metadata in the settings panel
-            updateAyahMetadata(verseData.meta);
-          } else {
-            console.error("Error in verse data:", verseData.error);
-          }
-        })
-        .catch(error => {
-          console.error("Error fetching verse:", error);
-        });
-    });
-  }
-
-  // Helper function to update reference text
-  function updateReferenceText(surah, ayahNumber) {
-    if (referenceText) {
-      referenceText.textContent = `Quran ${surah.number}:${ayahNumber} - ${surah.name}, Ayah ${ayahNumber}`;
-    }
-  }
-
-  // Helper function to update glow elements
-  function updateGlowElements() {
-    glowElements.forEach(el => {
-      // Generate random positions for ambient glow elements
-      const randomX = Math.floor(Math.random() * 300) - 150;
-      const randomY = Math.floor(Math.random() * 300) - 150;
-
-      el.style.transform = `translate(${randomX}px, ${randomY}px)`;
-    });
-  }
-
-  // Add mousemove effect for interactive background
-  document.addEventListener('mousemove', function (e) {
-    const mouseX = e.clientX / window.innerWidth;
-    const mouseY = e.clientY / window.innerHeight;
-
-    // Subtle parallax effect on glow elements
-    glowElements.forEach((el, index) => {
-      const depth = index + 1;
-      const moveX = (mouseX - 0.5) * depth * 30;
-      const moveY = (mouseY - 0.5) * depth * 30;
-
-      el.style.transform = `translate(${moveX}px, ${moveY}px)`;
-    });
+    // Add a small delay for each item for a smooth cascading effect
+    delay += 5;
   });
+}
 
-  // Initialize custom audio player functionality
-  initCustomAudioPlayer();
+function populateAyahSelect(surahNumber) {
+  const ayahSelect = document.getElementById('ayah-select');
+  const selectedSurah = quranData.find(surah => surah.number === parseInt(surahNumber));
 
-  // Add new variables for settings panel
-  const settingsToggle = document.getElementById('settings-toggle');
-  const settingsPanel = document.getElementById('settings-panel');
-
-  // Toggle settings panel visibility
-  if (settingsToggle && settingsPanel) {
-    settingsToggle.addEventListener('click', function () {
-      settingsPanel.classList.toggle('hidden');
-      settingsPanel.classList.toggle('visible');
-    });
-
-    // Close settings panel when clicking outside of it
-    document.addEventListener('click', function (event) {
-      const isClickInsideSettings = settingsPanel.contains(event.target) ||
-        settingsToggle.contains(event.target);
-
-      if (!isClickInsideSettings && settingsPanel.classList.contains('visible')) {
-        settingsPanel.classList.remove('visible');
-        settingsPanel.classList.add('hidden');
-      }
-    });
+  if (ayahSelect && selectedSurah) {
+    ayahSelect.innerHTML = '<option value="">--Please select an Ayah--</option>';
+    for (let i = 1; i <= selectedSurah.ayahCount; i++) {
+      const option = document.createElement('option');
+      option.value = String(i);
+      option.textContent = `Ayah ${i}`;
+      ayahSelect.appendChild(option);
+    }
+    ayahSelect.disabled = false;
   }
+}
 
-  // Set up audio event listeners
-  setupAudioEvents();
+function updateGlowElements() {
+  const glowElements = document.querySelectorAll('.ambient-glow');
+  glowElements.forEach(el => {
+    const randomX = Math.floor(Math.random() * 300) - 150;
+    const randomY = Math.floor(Math.random() * 300) - 150;
+    el.style.transform = `translate(${randomX}px, ${randomY}px)`;
+  });
+}
 
-  // Add event listeners for the new navigation buttons
-  const prevAyahBtn = document.getElementById('prev-ayah-btn');
-  const nextAyahBtn = document.getElementById('next-ayah-btn');
-
-  if (prevAyahBtn) {
-    prevAyahBtn.addEventListener('click', navigateToPreviousAyah);
-  }
-
-  if (nextAyahBtn) {
-    nextAyahBtn.addEventListener('click', navigateToNextAyah);
-  }
-
-  // Initialize audio controls
-  initializeAudioControls();
-});
-
+// APPLICATION INITIALIZATION MODULE
 function initCustomAudioPlayer() {
   const audioElement = document.getElementById('ayah-audio-player');
   const customPlayer = document.getElementById('custom-audio-player');
@@ -893,179 +723,6 @@ function initCustomAudioPlayer() {
   }
 }
 
-// Function to load audio for an ayah
-function loadAyahAudio(ayahData) {
-  const audioElement = document.getElementById('ayah-audio-player');
-
-  if (audioElement && ayahData && ayahData.audioUrl) {
-    // Set the src and load
-    audioElement.src = ayahData.audioUrl;
-    audioElement.load();
-
-    // Show the controls when a new ayah is loaded
-    const audioContainer = document.querySelector('.audio-container');
-    if (audioContainer) {
-      audioContainer.classList.add('visible');
-    }
-
-    // If auto-play is desired when loading an ayah directly (not just navigation)
-    // Uncomment the next line:
-    // playAudioAfterAyahChange();
-  }
-}
-
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', initCustomAudioPlayer);
-
-// Function to navigate to the previous ayah
-function navigateToPreviousAyah() {
-  try {
-    const surahSelect = document.getElementById('surah-select');
-    const ayahSelect = document.getElementById('ayah-select');
-
-    if (!surahSelect || !ayahSelect) return;
-
-    let currentSurah = parseInt(surahSelect.value);
-    let currentAyah = parseInt(ayahSelect.value);
-
-    // If we're at the first ayah of the current surah
-    if (currentAyah <= 1) {
-      // If we're at Surah 1, wrap around to the last surah
-      if (currentSurah <= 1) {
-        currentSurah = 114; // Last surah in the Quran
-      } else {
-        currentSurah--;
-      }
-
-      // Update the surah dropdown
-      surahSelect.value = currentSurah;
-
-      // Trigger the change event to load the ayahs for this surah
-      const event = new Event('change');
-      surahSelect.dispatchEvent(event);
-
-      // Select the last ayah of the previous surah (will be populated after the event)
-      setTimeout(() => {
-        if (ayahSelect.options.length > 0) {
-          ayahSelect.selectedIndex = ayahSelect.options.length - 1;
-          ayahSelect.dispatchEvent(new Event('change'));
-          // Play the audio after selection
-          playAudioAfterAyahChange();
-        }
-      }, 300);
-    } else {
-      // Simply go to the previous ayah in the current surah
-      ayahSelect.value = currentAyah - 1;
-      ayahSelect.dispatchEvent(new Event('change'));
-      // Play the audio
-      playAudioAfterAyahChange();
-    }
-  } catch (error) {
-    console.error('Error navigating to previous ayah:', error);
-  }
-}
-
-// Function to navigate to the next ayah
-function navigateToNextAyah() {
-  try {
-    const surahSelect = document.getElementById('surah-select');
-    const ayahSelect = document.getElementById('ayah-select');
-
-    if (!surahSelect || !ayahSelect) return;
-
-    let currentSurah = parseInt(surahSelect.value);
-    let currentAyah = parseInt(ayahSelect.value);
-    let totalAyahs = ayahSelect.options.length - 1; // Account for the placeholder option
-
-    // If we're at the last ayah of the current surah
-    if (currentAyah >= totalAyahs) {
-      // If we're at the last surah, wrap around to the first surah
-      if (currentSurah >= 114) {
-        currentSurah = 1;
-      } else {
-        currentSurah++;
-      }
-
-      // Update the surah dropdown
-      surahSelect.value = currentSurah;
-
-      // Trigger the change event to load the ayahs for this surah
-      const event = new Event('change');
-      surahSelect.dispatchEvent(event);
-
-      // Select the first ayah of the next surah
-      setTimeout(() => {
-        ayahSelect.selectedIndex = 1; // First ayah (index 0 is the placeholder)
-        ayahSelect.dispatchEvent(new Event('change'));
-        // Play the audio after selection
-        playAudioAfterAyahChange();
-      }, 300);
-    } else {
-      // Simply go to the next ayah in the current surah
-      ayahSelect.value = currentAyah + 1;
-      ayahSelect.dispatchEvent(new Event('change'));
-      // Play the audio
-      playAudioAfterAyahChange();
-    }
-  } catch (error) {
-    console.error('Error navigating to next ayah:', error);
-  }
-}
-
-// Function to play audio after ayah changes
-function playAudioAfterAyahChange() {
-  setTimeout(() => {
-    const audioElement = document.getElementById('ayah-audio-player');
-    if (audioElement && audioElement.src && audioElement.src !== window.location.href) {
-      // Update the play/pause button appearance
-      const playIcon = document.querySelector('.play-icon');
-      const pauseIcon = document.querySelector('.pause-icon');
-
-      if (playIcon) playIcon.style.display = 'none';
-      if (pauseIcon) pauseIcon.style.display = 'block';
-
-      // Play the audio
-      const playPromise = audioElement.play();
-
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          // Auto-play was prevented
-          if (playIcon) playIcon.style.display = 'block';
-          if (pauseIcon) pauseIcon.style.display = 'none';
-        });
-      }
-
-      // Show the controls
-      const audioContainer = document.querySelector('.audio-container');
-      if (audioContainer) {
-        audioContainer.classList.add('visible');
-      }
-    }
-  }, 500); // Small delay to ensure audio is loaded
-}
-
-// Update this to only reference the metadata elements in the settings panel
-function updateAyahMetadata(ayahData) {
-  // Make sure we have valid ayah data
-  if (!ayahData) return;
-
-  // Get ONLY the metadata elements in the settings panel
-  const juzInfo = document.getElementById('juz-info'); // This should be in the settings panel
-  const pageInfo = document.getElementById('page-info'); // This should be in the settings panel
-  const hizbInfo = document.getElementById('hizb-info'); // This should be in the settings panel
-
-  // Don't try to update elements that should have been removed
-  // const juzDisplay = document.getElementById('juz-display'); // Remove this if it was in main UI
-  // const pageDisplay = document.getElementById('page-display'); // Remove this if it was in main UI
-  // const hizbDisplay = document.getElementById('hizb-display'); // Remove this if it was in main UI
-
-  // Update only the settings panel metadata
-  if (juzInfo) juzInfo.textContent = ayahData.juz || '-';
-  if (pageInfo) pageInfo.textContent = ayahData.page || '-';
-  if (hizbInfo) hizbInfo.textContent = ayahData.hizbQuarter ?
-    `${Math.floor(ayahData.hizbQuarter / 4) + 1}:${ayahData.hizbQuarter % 4 || 4}` : '-';
-}
-
 function setupAudioEvents() {
   const audioPlayer = document.getElementById('ayah-audio-player');
 
@@ -1099,80 +756,400 @@ function setupAudioEvents() {
   }
 }
 
-// Updated function to select the next ayah, update UI, and auto-play
-function selectNextAyah(surahNum, ayahNum, autoPlay = false) {
-  // Get the select elements
-  const surahSelect = document.getElementById('surah-select');
-  const ayahSelect = document.getElementById('ayah-select');
+function setupAudioEndedListener() {
   const audioPlayer = document.getElementById('ayah-audio-player');
-
-  if (!surahSelect || !ayahSelect || !audioPlayer) return;
-
-  // Flag to track when we should play audio
-  let shouldPlayAfterUpdate = autoPlay;
-
-  // Update the surah select if needed
-  if (surahSelect.value !== surahNum.toString()) {
-    surahSelect.value = surahNum.toString();
-
-    // Trigger change event to populate ayah dropdown
-    const event = new Event('change');
-    surahSelect.dispatchEvent(event);
-
-    // We need to wait a bit for ayahs to be populated
-    setTimeout(() => {
-      ayahSelect.value = ayahNum.toString();
-      ayahSelect.dispatchEvent(new Event('change'));
-
-      // Play after the change event has fully processed
-      setTimeout(() => {
-        if (shouldPlayAfterUpdate) {
-          playAudio();
-        }
-      }, 300); // Small additional delay to ensure audio is loaded
-    }, 100);
-  } else {
-    // Just update the ayah
-    ayahSelect.value = ayahNum.toString();
-    ayahSelect.dispatchEvent(new Event('change'));
-
-    // Play after the change event has fully processed
-    setTimeout(() => {
-      if (shouldPlayAfterUpdate) {
-        playAudio();
-      }
-    }, 300); // Small delay to ensure audio is loaded
+  if (audioPlayer) {
+    audioPlayer.addEventListener('ended', () => {
+      console.log('Audio ended, moving to next ayah');
+      goToNextAyah();
+    });
   }
 }
 
-// Helper function to get the total ayahs in a surah
-function getSurahAyahCount(surahNum) {
-  // This could be fetched from your existing data structure
-  // This is an array of ayah counts for each surah (1-indexed)
-  const ayahCounts = [
-    7, 286, 200, 176, 120, 165, 206, 75, 129, 109, 123, 111, 43, 52, 99, 128,
-    111, 110, 98, 135, 112, 78, 118, 64, 77, 227, 93, 88, 69, 60, 34, 30, 73,
-    54, 45, 83, 182, 88, 75, 85, 54, 53, 89, 59, 37, 35, 38, 29, 18, 45, 60,
-    49, 62, 55, 78, 96, 29, 22, 24, 13, 14, 11, 11, 18, 12, 12, 30, 52, 52,
-    44, 28, 28, 20, 56, 40, 31, 50, 40, 46, 42, 29, 19, 36, 25, 22, 17, 19,
-    26, 30, 20, 15, 21, 11, 8, 8, 19, 5, 8, 8, 11, 11, 8, 3, 9, 5, 4, 7, 3,
-    6, 3, 5, 4, 5, 6
-  ];
+function setDefaultSelections() {
+  // Get references to the DOM elements
+  const surahSelect = document.getElementById('surah-select');
+  const ayahSelect = document.getElementById('ayah-select');
 
-  return ayahCounts[surahNum - 1]; // Adjust for 0-indexed array
+  if (!surahSelect) {
+    console.error("Surah select element not found");
+    return;
+  }
+
+  // Load from local storage or use defaults
+  const savedSelections = loadSelectionsFromLocalStorage();
+  console.log("Setting default selections:", savedSelections);
+
+  // Default to Surah Al-Fatihah (1) or saved selection
+  if (surahSelect.options.length > 1) {
+    // Select the Surah from local storage or default to Al-Fatihah
+    surahSelect.value = savedSelections.surah;
+    console.log("Set surah select value to:", savedSelections.surah);
+
+    // Trigger the change event to populate Ayah dropdown
+    const changeEvent = new Event('change', { bubbles: true });
+    surahSelect.dispatchEvent(changeEvent);
+
+    // Set a timeout to select the Ayah after Ayah dropdown is populated
+    setTimeout(() => {
+      if (ayahSelect && ayahSelect.options.length > 1) {
+        // Try to set ayah from local storage, but check if it's in range
+        const surahNumber = parseInt(savedSelections.surah);
+        const selectedSurah = quranData.find(surah => surah.number === surahNumber);
+
+        if (selectedSurah) {
+          const savedAyahNumber = parseInt(savedSelections.ayah);
+          // Make sure the saved ayah is within range for this surah
+          if (savedAyahNumber > 0 && savedAyahNumber <= selectedSurah.ayahCount) {
+            ayahSelect.value = savedSelections.ayah;
+          } else {
+            // If out of range, default to the first ayah
+            ayahSelect.value = "1";
+          }
+        } else {
+          // If surah not found, default to the first ayah
+          ayahSelect.value = "1";
+        }
+
+        // Trigger the change event to load the verse and play audio
+        ayahSelect.dispatchEvent(new Event('change', { bubbles: true }));
+
+        // Also calculate and play the audio for the initially loaded Ayah
+        if (savedSelections.surah && savedSelections.ayah) {
+          const globalAyahNumber = calculateGlobalAyahNumber(savedSelections.surah, savedSelections.ayah);
+          playAyahAudio(globalAyahNumber);
+        }
+      }
+    }, 700); // Wait for Ayah dropdown to be populated
+  }
 }
 
-// Initialize player when DOM is loaded
-document.addEventListener('DOMContentLoaded', function () {
+function initializeAudioControls() {
+  // Set up play/pause button
+  const playPauseBtn = document.getElementById('play-pause-btn');
+  if (playPauseBtn) {
+    playPauseBtn.addEventListener('click', togglePlayPause);
+  }
+
+  // Set up next/previous buttons
+  const nextBtn = document.getElementById('next-ayah-btn');
+  const prevBtn = document.getElementById('prev-ayah-btn');
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', goToNextAyah);
+  }
+
+  if (prevBtn) {
+    prevBtn.addEventListener('click', goToPreviousAyah);
+  }
+
+  // Set up audio ended listener
+  setupAudioEndedListener();
+
+  // Load the first ayah when page loads
+  loadAndDisplayAyah(1);
+}
+
+function fetchAndDisplayAyahText(globalAyahNumber) {
+  const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(globalAyahNumber);
+
+  // Display loading state
+  const arabicTextElement = document.getElementById('arabic-text');
+  const translationElement = document.getElementById('translation-text');
+
+  if (arabicTextElement) arabicTextElement.innerHTML = 'Loading Arabic text...';
+  if (translationElement) translationElement.textContent = 'Loading translation...';
+
+  // Make the API call to fetch verse data
+  fetchQuranVerse(surahNumber, ayahWithinSurah)
+    .then(verseData => {
+      if (!verseData.error) {
+        // Update the UI with the verse data
+        if (arabicTextElement) arabicTextElement.innerHTML = verseData.arabic;
+        if (translationElement) translationElement.textContent = verseData.english || 'Translation not available';
+
+        // Update metadata
+        updateAyahMetadata(verseData.meta);
+
+        // Add animation
+        const verseContainer = document.getElementById('verse-container');
+        if (verseContainer) {
+          verseContainer.classList.add('verse-fade-in');
+          setTimeout(() => verseContainer.classList.remove('verse-fade-in'), 1000);
+        }
+      }
+    })
+    .catch(error => console.error("Error fetching verse:", error));
+}
+
+function loadAndDisplayAyah(globalAyahNumber) {
+  // Validate the ayah number
+  if (!globalAyahNumber || isNaN(parseInt(globalAyahNumber))) {
+    console.error('Invalid ayah number:', globalAyahNumber);
+    return false;
+  }
+
+  // Convert to integer and store as current ayah
+  const ayahNum = parseInt(globalAyahNumber);
+  currentAyahNumber = ayahNum;
+
+  console.log(`Loading ayah number ${currentAyahNumber}`);
+
+  // Update UI to reflect the current ayah
+  updateAyahSelectors(currentAyahNumber);
+
+  // Fetch and display the ayah text
+  fetchAndDisplayAyahText(currentAyahNumber);
+
+  // Load the audio for this ayah
+  return playAyahAudio(currentAyahNumber);
+}
+
+// MAIN INITIALIZATION FUNCTION
+document.addEventListener('DOMContentLoaded', () => {
+  // Initialize particles.js
+  if (typeof window.particlesJS !== 'undefined') {
+    window.particlesJS.load('particles-js', 'particles.json', function () {
+      console.log('Particles.js loaded successfully');
+    });
+  }
+
+  console.log("DOM loaded, populating Surah dropdown");
+
+  // Set up event listeners
+  setupEventListeners();
+
+  // Initialize UI components
   initCustomAudioPlayer();
+  initializeAudioControls();
+  setupAudioEvents();
 
-  // Show controls briefly on page load
-  const audioContainer = document.querySelector('.audio-container');
-  audioContainer.classList.add('visible');
+  // Populate dropdowns with data
+  setTimeout(() => {
+    populateSurahDropdown();
+    // Wait until all options are loaded before setting defaults
+    setTimeout(setDefaultSelections, quranData.length * 5 + 100);
+  }, 500);
+});
 
-  setTimeout(function () {
-    if (document.getElementById('ayah-audio-player').paused) {
-      audioContainer.classList.remove('visible');
+// Helper function to set up all event listeners in one place
+function setupEventListeners() {
+  // Surah selection change
+  const surahSelect = document.getElementById('surah-select');
+  if (surahSelect) {
+    surahSelect.addEventListener('change', handleSurahChange);
+  }
+
+  // Ayah selection change
+  const ayahSelect = document.getElementById('ayah-select');
+  if (ayahSelect) {
+    ayahSelect.addEventListener('change', handleAyahChange);
+  }
+
+  // Settings panel toggle
+  const settingsToggle = document.getElementById('settings-toggle');
+  const settingsPanel = document.getElementById('settings-panel');
+  if (settingsToggle && settingsPanel) {
+    settingsToggle.addEventListener('click', () => {
+      settingsPanel.classList.toggle('hidden');
+      settingsPanel.classList.toggle('visible');
+    });
+
+    // Close settings when clicking outside
+    document.addEventListener('click', function (event) {
+      const isClickInsideSettings = settingsPanel.contains(event.target) ||
+        settingsToggle.contains(event.target);
+
+      if (!isClickInsideSettings && settingsPanel.classList.contains('visible')) {
+        settingsPanel.classList.remove('visible');
+        settingsPanel.classList.add('hidden');
+      }
+    });
+  }
+
+  // Mouse movement effects
+  document.addEventListener('mousemove', handleMouseMove);
+}
+
+function handleSurahChange() {
+  const surahSelect = document.getElementById('surah-select');
+  const ayahSelect = document.getElementById('ayah-select');
+  const referenceText = document.getElementById('selected-reference-text');
+  const quranSelector = document.querySelector('.quran-selector');
+  const verseContainer = document.getElementById('verse-container');
+
+  const selectedSurahNumber = parseInt(surahSelect.value);
+
+  // Add subtle animation effect to the container
+  if (quranSelector) {
+    quranSelector.classList.add('changing');
+  }
+
+  // Update glow elements position randomly
+  updateGlowElements();
+
+  // Clear and disable Ayah dropdown if no Surah is selected
+  if (!selectedSurahNumber) {
+    if (ayahSelect) {
+      ayahSelect.innerHTML = '<option value="">--Please select a Surah first--</option>';
+      ayahSelect.disabled = true;
     }
-  }, 3000);
-}); 
+    if (referenceText) {
+      referenceText.textContent = 'Please select a Surah and Ayah to see the reference.';
+    }
+    if (quranSelector) {
+      quranSelector.classList.remove('changing');
+    }
+
+    // Hide verse container if no surah selected
+    if (verseContainer) {
+      verseContainer.classList.remove('visible');
+    }
+    return;
+  }
+
+  // Save selection to local storage (without ayah yet)
+  saveSelectionsToLocalStorage(selectedSurahNumber, "1");
+
+  // Find the selected Surah data
+  const selectedSurah = quranData.find(surah => surah.number === selectedSurahNumber);
+
+  // Add loading animation
+  if (referenceText) {
+    referenceText.innerHTML = 'Loading <span class="loading-dots"><span></span><span></span><span></span></span>';
+  }
+
+  // Simulate loading delay for a smoother experience
+  setTimeout(() => {
+    if (ayahSelect && selectedSurah) {
+      // Enable and populate Ayah dropdown
+      populateAyahSelect(selectedSurahNumber);
+
+      // Automatically select the first Ayah (index 1 since we have an empty option at index 0)
+      if (ayahSelect.options.length > 1) {
+        ayahSelect.selectedIndex = 1; // Select the first Ayah (option at index 1)
+
+        // Manually trigger the change event to load the verse
+        const changeEvent = new Event('change', { bubbles: true });
+        ayahSelect.dispatchEvent(changeEvent);
+      } else {
+        // If no Ayahs were populated, update reference text accordingly
+        if (referenceText) {
+          referenceText.textContent = `Selected Surah: ${selectedSurah.name}. Please select an Ayah.`;
+        }
+      }
+    }
+
+    // Remove animation class
+    if (quranSelector) {
+      quranSelector.classList.remove('changing');
+    }
+  }, 600);
+}
+
+function handleAyahChange() {
+  const surahSelect = document.getElementById('surah-select');
+  const ayahSelect = document.getElementById('ayah-select');
+  const verseContainer = document.getElementById('verse-container');
+  const arabicTextElement = document.getElementById('arabic-text');
+  const translationElement = document.getElementById('translation-text');
+  const verseMetaElement = document.getElementById('verse-meta');
+
+  console.log("Ayah selection changed");
+  const selectedSurahNumber = surahSelect.value;
+  const selectedAyahNumber = ayahSelect.value;
+
+  console.log("Selected Surah:", selectedSurahNumber, "Selected Ayah:", selectedAyahNumber);
+
+  if (!selectedSurahNumber || !selectedAyahNumber) {
+    console.log("No selection made, returning early");
+    return;
+  }
+
+  // Save the selection to local storage
+  saveSelectionsToLocalStorage(selectedSurahNumber, selectedAyahNumber);
+
+  // Ensure the verse container is visible
+  if (verseContainer) {
+    verseContainer.style.display = 'block';
+    verseContainer.style.opacity = '1';
+    console.log("Verse container should be visible now");
+  }
+
+  // Display loading state
+  if (arabicTextElement) {
+    arabicTextElement.innerHTML = 'Loading Arabic text...';
+    console.log("Set loading message for Arabic text");
+  }
+
+  if (translationElement) {
+    translationElement.textContent = 'Loading translation...';
+  }
+
+  // Calculate the global ayah number for audio playback
+  const globalAyahNumber = calculateGlobalAyahNumber(selectedSurahNumber, selectedAyahNumber);
+
+  // Play the audio for the selected ayah
+  playAyahAudio(globalAyahNumber);
+
+  // Make the API call to fetch verse data
+  fetchQuranVerse(selectedSurahNumber, selectedAyahNumber)
+    .then(verseData => {
+      console.log("Verse data received:", verseData);
+
+      if (!verseData.error) {
+        // Display Arabic text
+        if (arabicTextElement) {
+          console.log("Setting Arabic text:", verseData.arabic);
+          arabicTextElement.innerHTML = verseData.arabic;
+        }
+
+        // Display translation
+        if (translationElement) {
+          translationElement.textContent = verseData.english || 'Translation not available';
+        }
+
+        // Display metadata if available
+        if (verseMetaElement && verseData.meta) {
+          verseMetaElement.innerHTML = `
+            <div class="meta-item">Juz ${verseData.meta.juz}</div>
+            <div class="meta-item">Page ${verseData.meta.page}</div>
+            <div class="meta-item">Hizb ${Math.ceil(verseData.meta.hizbQuarter / 4)}.${verseData.meta.hizbQuarter % 4 === 0 ? 4 : verseData.meta.hizbQuarter % 4}</div>
+          `;
+        }
+
+        // Add the fade-in animation when a new verse is displayed
+        if (verseContainer) {
+          verseContainer.classList.add('verse-fade-in');
+
+          // Remove the class after animation completes
+          setTimeout(() => {
+            verseContainer.classList.remove('verse-fade-in');
+          }, 1000);
+        }
+
+        // Now also update the metadata in the settings panel
+        updateAyahMetadata(verseData.meta);
+      } else {
+        console.error("Error in verse data:", verseData.error);
+      }
+    })
+    .catch(error => {
+      console.error("Error fetching verse:", error);
+    });
+}
+
+function handleMouseMove(e) {
+  const mouseX = e.clientX / window.innerWidth;
+  const mouseY = e.clientY / window.innerHeight;
+
+  // Subtle parallax effect on glow elements
+  const glowElements = document.querySelectorAll('.ambient-glow');
+  glowElements.forEach((el, index) => {
+    const depth = index + 1;
+    const moveX = (mouseX - 0.5) * depth * 30;
+    const moveY = (mouseY - 0.5) * depth * 30;
+
+    el.style.transform = `translate(${moveX}px, ${moveY}px)`;
+  });
+} 
