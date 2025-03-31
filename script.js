@@ -540,7 +540,32 @@ function createAyahTransition() {
   });
 }
 
-// Update the displayVerse function to use the transition
+// Add this function to create the text animation effects
+function addTextGlowEffects() {
+  const arabicText = document.getElementById('arabic-text');
+
+  // Create a subtle glow container around the text
+  if (!document.querySelector('.ayah-glow-container')) {
+    const glowContainer = document.createElement('div');
+    glowContainer.className = 'ayah-glow-container';
+    arabicText.parentNode.insertBefore(glowContainer, arabicText);
+    glowContainer.appendChild(arabicText);
+  }
+
+  // Add decorative particles around the text
+  if (!document.querySelector('.ayah-light-particles')) {
+    const lightParticles = document.createElement('div');
+    lightParticles.className = 'ayah-light-particles';
+    for (let i = 0; i < 8; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'light-particle';
+      lightParticles.appendChild(particle);
+    }
+    arabicText.parentNode.appendChild(lightParticles);
+  }
+}
+
+// Modify displayVerse to add the glow effects
 async function displayVerse(surahNumber, ayahNumber, verseData) {
   // Add transition effect if elements already have content
   const arabicText = document.getElementById('arabic-text');
@@ -559,9 +584,42 @@ async function displayVerse(surahNumber, ayahNumber, verseData) {
     translationText.textContent = verseData.english;
   }
 
+  // Add the immersive glow effects
+  addTextGlowEffects();
+
+  // Create a pulsating effect on the light particles
+  animateParticles();
+
   // Update page title with current surah and ayah
   const surahName = quranData.find(s => s.number == surahNumber)?.name || '';
   document.title = `Quran - ${surahName} (${surahNumber}:${ayahNumber})`;
+}
+
+// Function to animate the light particles
+function animateParticles() {
+  const particles = document.querySelectorAll('.light-particle');
+  particles.forEach((particle, index) => {
+    // Reset any existing animations
+    particle.style.animation = 'none';
+
+    // Calculate random positions around the text
+    const delay = Math.random() * 4;
+    const duration = 5 + Math.random() * 5;
+
+    // Force reflow
+    void particle.offsetWidth;
+
+    // Apply new animation
+    particle.style.animation = `float-particle ${duration}s ease-in-out ${delay}s infinite, 
+                                glow-pulse ${duration / 2}s ease-in-out ${delay}s infinite`;
+
+    // Set random positions
+    particle.style.top = `${20 + Math.random() * 60}%`;
+    particle.style.left = `${10 + Math.random() * 80}%`;
+    particle.style.opacity = (0.3 + Math.random() * 0.5).toString();
+    particle.style.width = `${3 + Math.random() * 8}px`;
+    particle.style.height = particle.style.width;
+  });
 }
 
 // EVENT HANDLERS

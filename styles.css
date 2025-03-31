@@ -211,10 +211,20 @@ body {
   margin-bottom: 2rem;
   direction: rtl;
   color: #ffffff;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  text-shadow: 
+    0 0 5px rgba(255, 255, 255, 0.3),
+    0 0 20px rgba(78, 110, 242, 0.3);
   font-weight: 400;
   letter-spacing: 0.5px;
-  font-display: swap; /* Add this to prevent invisible text while loading */
+  font-display: swap;
+  animation: text-glow 8s ease-in-out infinite;
+  z-index: 6;
+  position: relative;
+}
+
+@keyframes text-glow {
+  0%, 100% { text-shadow: 0 0 5px rgba(255, 255, 255, 0.3), 0 0 20px rgba(78, 110, 242, 0.3); }
+  50% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.5), 0 0 30px rgba(78, 110, 242, 0.5); }
 }
 
 /* Translation text styling */
@@ -479,7 +489,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle at center, rgba(78, 110, 242, 0.15) 0%, transparent 70%);
   opacity: 0;
   pointer-events: none;
   z-index: 1000;
@@ -487,19 +497,13 @@ body {
 }
 
 .pulse-animation {
-  animation: gentle-pulse 1s ease-out;
+  animation: gentle-pulse 1.2s ease-out;
 }
 
 @keyframes gentle-pulse {
-  0% {
-    opacity: 0;
-  }
-  40% {
-    opacity: 0.3;
-  }
-  100% {
-    opacity: 0;
-  }
+  0% { opacity: 0; }
+  40% { opacity: 0.35; }
+  100% { opacity: 0; }
 }
 
 /* Settings toggle button */
@@ -845,4 +849,133 @@ p, h1, h2, h3, h4, h5, h6, span, label {
 /* Make sure transitions still work properly */
 .arabic-text, .translation-text {
   transition: opacity 0.3s ease, transform 0.4s ease;
+}
+
+/* Ayah Immersive Glow Effects */
+.ayah-glow-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+  padding: 1rem;
+  z-index: 5;
+}
+
+.ayah-glow-container::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(78, 110, 242, 0.1) 0%,
+    rgba(78, 110, 242, 0.05) 40%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  filter: blur(20px);
+  opacity: 0;
+  animation: container-glow 6s ease-in-out infinite;
+  z-index: -1;
+  pointer-events: none;
+}
+
+@keyframes container-glow {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+/* Floating light particles */
+.ayah-light-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.light-particle {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  box-shadow: 
+    0 0 10px 2px rgba(78, 110, 242, 0.3),
+    0 0 20px 4px rgba(78, 110, 242, 0.1);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+@keyframes float-particle {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(15px, -15px) scale(1.1); }
+  50% { transform: translate(0, -30px) scale(1); }
+  75% { transform: translate(-15px, -15px) scale(0.9); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.3; box-shadow: 0 0 10px 2px rgba(78, 110, 242, 0.3), 0 0 20px 4px rgba(78, 110, 242, 0.1); }
+  50% { opacity: 0.7; box-shadow: 0 0 15px 5px rgba(78, 110, 242, 0.5), 0 0 30px 10px rgba(78, 110, 242, 0.2); }
+}
+
+/* Enhanced Arabic text styling */
+.arabic-text {
+  font-family: 'Scheherazade New', 'Amiri', 'Noto Sans Arabic', serif;
+  font-size: 2.5rem;
+  line-height: 2;
+  text-align: center;
+  margin-bottom: 2rem;
+  direction: rtl;
+  color: #ffffff;
+  text-shadow: 
+    0 0 5px rgba(255, 255, 255, 0.3),
+    0 0 20px rgba(78, 110, 242, 0.3);
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  font-display: swap;
+  animation: text-glow 8s ease-in-out infinite;
+  z-index: 6;
+  position: relative;
+}
+
+@keyframes text-glow {
+  0%, 100% { text-shadow: 0 0 5px rgba(255, 255, 255, 0.3), 0 0 20px rgba(78, 110, 242, 0.3); }
+  50% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.5), 0 0 30px rgba(78, 110, 242, 0.5); }
+}
+
+/* Enhanced verse transition pulse */
+.verse-transition-pulse {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, rgba(78, 110, 242, 0.15) 0%, transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1000;
+  transition: opacity 0.4s ease-out;
+}
+
+.pulse-animation {
+  animation: gentle-pulse 1.2s ease-out;
+}
+
+@keyframes gentle-pulse {
+  0% { opacity: 0; }
+  40% { opacity: 0.35; }
+  100% { opacity: 0; }
+}
+
+/* Fix any conflicts with existing opacity rules */
+.fonts-loaded .arabic-text,
+.fonts-loaded .translation-text {
+  opacity: 1;
 } 
