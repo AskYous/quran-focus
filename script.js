@@ -205,21 +205,31 @@ function getSurahAyahCount(surahNum) {
 }
 
 // AUDIO CONTROL MODULE
-function playAyahAudio(globalAyahNumber) {
+function playAyahAudio(ayahNumber) {
+  // Use the correct ID for Ahmed ibn Ali al-Ajamy: ar.ahmedajamy
+  const audioURL = `https://cdn.islamic.network/quran/audio/128/ar.ahmedajamy/${ayahNumber}.mp3`;
+
+  // Set the audio source
   const audioPlayer = document.getElementById('ayah-audio-player');
-  if (!audioPlayer || !globalAyahNumber) return false;
+  if (audioPlayer) {
+    audioPlayer.src = audioURL;
 
-  // Construct the audio URL
-  const audioUrl = `https://cdn.islamic.network/quran/audio/${RECITER.shuraym.bitrate}/${RECITER.shuraym.id}/${globalAyahNumber}.mp3`;
+    // Reset play button state
+    updatePlayPauseButton(false);
 
-  // Update the audio element
-  audioPlayer.src = audioUrl;
-  audioPlayer.load();
+    // Preload the audio
+    audioPlayer.load();
 
-  // Reset UI
-  updatePlayPauseButton(true);
-
-  return true;
+    // Return a promise that resolves when the audio is loaded
+    return new Promise((resolve) => {
+      audioPlayer.oncanplaythrough = () => {
+        resolve();
+      };
+      // Also resolve after a timeout in case audio loading takes too long
+      setTimeout(resolve, 3000);
+    });
+  }
+  return Promise.resolve();
 }
 
 function togglePlayPause() {
@@ -474,19 +484,11 @@ function loadAndDisplayAyah(globalAyahNumber) {
   fetchQuranVerse(surahNumber, ayahWithinSurah)
     .then(verseData => {
       if (!verseData.error) {
-        // Update the UI with the verse data
-        if (arabicTextElement) arabicTextElement.innerHTML = verseData.arabic;
-        if (translationElement) translationElement.textContent = verseData.english || 'Translation not available';
+        // Use our display verse function with transitions instead of direct updates
+        displayVerse(surahNumber, ayahWithinSurah, verseData);
 
         // Update metadata
         updateAyahMetadata(verseData.meta);
-
-        // Add animation
-        const verseContainer = document.getElementById('verse-container');
-        if (verseContainer) {
-          verseContainer.classList.add('verse-fade-in');
-          setTimeout(() => verseContainer.classList.remove('verse-fade-in'), 1000);
-        }
       }
     })
     .catch(error => console.error("Error fetching verse:", error));
@@ -495,25 +497,66 @@ function loadAndDisplayAyah(globalAyahNumber) {
   return playAyahAudio(currentAyahNumber);
 }
 
-function updateUI(surahNumber, ayahNumber, verseData) {
-  // Update the Arabic text element
-  const arabicTextElement = document.getElementById('arabic-text');
-  if (arabicTextElement) {
-    arabicTextElement.innerHTML = verseData.arabic;
-    arabicTextElement.classList.add('verse-fade-in');
+// Add a function to create the smooth transition effect
+function createAyahTransition() {
+  // Get the verse elements
+  const arabicText = document.getElementById('arabic-text');
+  const translationText = document.getElementById('translation-text');
+
+  // Add transition-out class to start the fade-out animation
+  arabicText.classList.add('transition-out');
+  translationText.classList.add('transition-out');
+
+  // Create subtle pulse effect
+  const pulseElement = document.querySelector('.verse-transition-pulse');
+  if (pulseElement) {
+    pulseElement.classList.add('pulse-animation');
+
+    // Remove the class after animation completes
+    setTimeout(() => {
+      pulseElement.classList.remove('pulse-animation');
+    }, 1000);
   }
 
-  // Update the translation text element
-  const translationElement = document.getElementById('translation-text');
-  if (translationElement) {
-    translationElement.textContent = verseData.english;
-    translationElement.classList.add('verse-fade-in');
+  // Wait for the fade-out to complete before updating content
+  return new Promise(resolve => {
+    setTimeout(() => {
+      // Remove transition classes
+      arabicText.classList.remove('transition-out');
+      translationText.classList.remove('transition-out');
+
+      // Add transition-in class to trigger fade-in animation
+      arabicText.classList.add('transition-in');
+      translationText.classList.add('transition-in');
+
+      // Remove transition-in class after animation completes
+      setTimeout(() => {
+        arabicText.classList.remove('transition-in');
+        translationText.classList.remove('transition-in');
+      }, 600);
+
+      resolve();
+    }, 300); // Duration of fade-out
+  });
+}
+
+// Update the displayVerse function to use the transition
+async function displayVerse(surahNumber, ayahNumber, verseData) {
+  // Add transition effect if elements already have content
+  const arabicText = document.getElementById('arabic-text');
+  const translationText = document.getElementById('translation-text');
+
+  if (arabicText.textContent && translationText.textContent) {
+    await createAyahTransition();
   }
 
-  // Update the verse container styling if needed
-  const verseContainer = document.querySelector('.verse-container');
-  if (verseContainer) {
-    verseContainer.classList.add('loaded');
+  // Now update the content
+  if (arabicText) {
+    arabicText.textContent = verseData.arabic;
+  }
+
+  if (translationText) {
+    translationText.textContent = verseData.english;
   }
 
   // Update page title with current surah and ayah
@@ -609,28 +652,21 @@ function handleAyahChange() {
   // Save the selection
   saveSelectionsToLocalStorage(selectedSurahNumber, selectedAyahNumber);
 
-  // Show loading state
-  const arabicTextElement = document.getElementById('arabic-text');
-  const translationElement = document.getElementById('translation-text');
-
-  if (arabicTextElement) arabicTextElement.innerHTML = 'Loading Arabic text...';
-  if (translationElement) translationElement.textContent = 'Loading translation...';
-
   // Calculate global ayah number
   const globalAyahNumber = calculateGlobalAyahNumber(selectedSurahNumber, selectedAyahNumber);
   currentAyahNumber = globalAyahNumber;
 
-  // Load audio without playing
-  playAyahAudio(globalAyahNumber);
-
-  // Fetch verse data
+  // Fetch verse data and handle transition
   fetchQuranVerse(selectedSurahNumber, selectedAyahNumber)
     .then(verseData => {
       if (!verseData.error) {
-        updateUI(selectedSurahNumber, selectedAyahNumber, verseData);
+        displayVerse(selectedSurahNumber, selectedAyahNumber, verseData);
       }
     })
     .catch(error => console.error("Error fetching verse:", error));
+
+  // Load audio without playing
+  playAyahAudio(globalAyahNumber);
 }
 
 function handleMouseMove(e) {
@@ -803,4 +839,50 @@ document.addEventListener('DOMContentLoaded', () => {
     // Wait until all options are loaded before setting defaults
     setTimeout(setDefaultSelections, quranData.length * 5 + 100);
   }, 500);
-}); 
+});
+
+// Remove any loading screen functionality from loadVerse
+async function loadVerse(surahNumber, ayahNumber) {
+  // Save current position to history state
+  currentSurahNumber = surahNumber;
+  currentAyahNumber = ayahNumber;
+
+  // Update URL without triggering a page reload
+  const newUrl = `?surah=${surahNumber}&ayah=${ayahNumber}`;
+  history.pushState({ surah: surahNumber, ayah: ayahNumber }, '', newUrl);
+
+  // Set the surah selector
+  surahSelect.value = surahNumber;
+
+  // Fetch the verse data directly
+  try {
+    const verseData = await fetchVerse(surahNumber, ayahNumber);
+    await displayVerse(surahNumber, ayahNumber, verseData);
+
+    // Load the audio for this ayah
+    return playAyahAudio(currentAyahNumber);
+  } catch (error) {
+    console.error("Error loading verse:", error);
+  }
+}
+
+// Remove any loading references in the initialization code (if any)
+async function initializeApp() {
+  // Load quran data
+  await loadQuranData();
+
+  // Set up event listeners
+  setupEventListeners();
+
+  // Parse URL params
+  const params = new URLSearchParams(window.location.search);
+  const surahParam = params.get('surah');
+  const ayahParam = params.get('ayah');
+
+  // Load initial verse
+  const initialSurah = surahParam || 1;
+  const initialAyah = ayahParam || 1;
+
+  // Load verse directly without showing loading screen
+  loadVerse(initialSurah, initialAyah);
+} 

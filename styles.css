@@ -479,22 +479,23 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
   opacity: 0;
   pointer-events: none;
   z-index: 1000;
+  transition: opacity 0.4s ease-out;
 }
 
 .pulse-animation {
-  animation: pulsate 1s ease-out;
+  animation: gentle-pulse 1s ease-out;
 }
 
-@keyframes pulsate {
+@keyframes gentle-pulse {
   0% {
     opacity: 0;
   }
-  50% {
-    opacity: 0.4;
+  40% {
+    opacity: 0.3;
   }
   100% {
     opacity: 0;
@@ -791,4 +792,57 @@ p, h1, h2, h3, h4, h5, h6, span, label {
     from { opacity: 0; }
     to { opacity: 1; }
   }
+}
+
+/* Smooth Ayah transitions */
+.arabic-text, .translation-text {
+  transition: opacity 0.3s ease, transform 0.4s ease;
+  opacity: 1;
+}
+
+.transition-out {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.transition-in {
+  animation: fade-in 0.5s ease forwards;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Remove all loading screen related styles */
+.loading-screen,
+.loading-overlay,
+.loading-indicator,
+.loading-message {
+  display: none !important;
+}
+
+/* Make sure the verse container is always visible */
+.verse-container,
+.ayah-display,
+.arabic-text,
+.translation-text {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Ensure no loading classes affect the display */
+.is-loading {
+  display: none !important;
+}
+
+/* Make sure transitions still work properly */
+.arabic-text, .translation-text {
+  transition: opacity 0.3s ease, transform 0.4s ease;
 } 
