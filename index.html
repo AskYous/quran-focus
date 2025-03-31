@@ -16,102 +16,98 @@
     <!-- Particles background container -->
     <div id="particles-js"></div>
 
-    <!-- Main container -->
-    <div class="container">
-        <div class="quran-selector">
-            <h1 class="title">Quran Meditation Space</h1>
-            
-            <div class="settings-container">
-                <button id="settings-toggle" class="settings-toggle">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
-                    </svg>
-                </button>
+    <!-- Title directly on page, not in container -->
+    <h1 class="title">Quran Meditation Space</h1>
+        
+    <div class="settings-container">
+        <button id="settings-toggle" class="settings-toggle">
+            <svg viewBox="0 0 24 24">
+                <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+            </svg>
+        </button>
+    </div>
+    
+    <div id="settings-panel" class="settings-panel hidden">
+        <div class="form-group">
+            <label for="surah-select">Select Surah</label>
+            <div class="select-wrapper">
+                <select id="surah-select" class="form-select">
+                    <option value="">--Please select a Surah--</option>
+                    <!-- Surah options will be populated by JavaScript -->
+                </select>
             </div>
-            
-            <div id="settings-panel" class="settings-panel hidden">
-                <div class="form-group">
-                    <label for="surah-select">Select Surah</label>
-                    <div class="select-wrapper">
-                        <select id="surah-select" class="form-select">
-                            <option value="">--Please select a Surah--</option>
-                            <!-- Surah options will be populated by JavaScript -->
-                        </select>
-                    </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="ayah-select">Select Ayah</label>
+            <div class="select-wrapper">
+                <select id="ayah-select" disabled class="form-select">
+                    <option value="">--Please select a Surah first--</option>
+                    <!-- Ayah options will be populated by JavaScript based on selected Surah -->
+                </select>
+            </div>
+        </div>
+        
+        <!-- Metadata section -->
+        <div class="metadata-section">
+            <h3 class="metadata-heading">Ayah Information</h3>
+            <div class="metadata-grid">
+                <div class="metadata-item">
+                    <span class="metadata-label">Juz</span>
+                    <span id="juz-info" class="metadata-value">-</span>
                 </div>
-                
-                <div class="form-group">
-                    <label for="ayah-select">Select Ayah</label>
-                    <div class="select-wrapper">
-                        <select id="ayah-select" disabled class="form-select">
-                            <option value="">--Please select a Surah first--</option>
-                            <!-- Ayah options will be populated by JavaScript based on selected Surah -->
-                        </select>
-                    </div>
+                <div class="metadata-item">
+                    <span class="metadata-label">Page</span>
+                    <span id="page-info" class="metadata-value">-</span>
                 </div>
-                
-                <!-- Metadata section -->
-                <div class="metadata-section">
-                    <h3 class="metadata-heading">Ayah Information</h3>
-                    <div class="metadata-grid">
-                        <div class="metadata-item">
-                            <span class="metadata-label">Juz</span>
-                            <span id="juz-info" class="metadata-value">-</span>
-                        </div>
-                        <div class="metadata-item">
-                            <span class="metadata-label">Page</span>
-                            <span id="page-info" class="metadata-value">-</span>
-                        </div>
-                        <div class="metadata-item">
-                            <span class="metadata-label">Hizb</span>
-                            <span id="hizb-info" class="metadata-value">-</span>
-                        </div>
-                    </div>
+                <div class="metadata-item">
+                    <span class="metadata-label">Hizb</span>
+                    <span id="hizb-info" class="metadata-value">-</span>
                 </div>
             </div>
-            
-            <!-- Audio player for Ayah recitation -->
-            <div class="audio-container">
-                <div id="custom-audio-player" class="custom-audio-player">
-                    <audio id="ayah-audio-player" preload="metadata"></audio>
-                    <button id="play-pause-btn" class="play-pause-btn">
-                        <svg class="play-icon" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z"/>
-                        </svg>
-                        <svg class="pause-icon" viewBox="0 0 24 24">
-                            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-                        </svg>
-                    </button>
-                    <div class="progress-container">
-                        <div class="time current-time">0:00</div>
-                        <div class="progress-bar-wrapper">
-                            <div class="progress-bar">
-                                <div class="progress-filled"></div>
-                            </div>
-                        </div>
-                        <div class="time duration">0:00</div>
-                    </div>
-                    <button id="volume-btn" class="volume-btn">
-                        <svg viewBox="0 0 24 24">
-                            <path class="volume-icon" d="M3 9v6h4l5 5V4L7 9H3z"/>
-                            <path class="volume-wave" d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
-                            <path class="volume-wave-outer" d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Quran verse display -->
-            <div class="ayah-display">
-                <div id="arabic-text" class="arabic-text"></div>
-                <div id="translation-text" class="translation-text"></div>
-            </div>
-
-            <!-- Ambient glow effects -->
-            <div class="ambient-glow glow-1"></div>
-            <div class="ambient-glow glow-2"></div>
         </div>
     </div>
+    
+    <!-- Audio player for Ayah recitation -->
+    <div class="audio-container">
+        <div id="custom-audio-player" class="custom-audio-player">
+            <audio id="ayah-audio-player" preload="metadata"></audio>
+            <button id="play-pause-btn" class="play-pause-btn">
+                <svg class="play-icon" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+                <svg class="pause-icon" viewBox="0 0 24 24">
+                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                </svg>
+            </button>
+            <div class="progress-container">
+                <div class="time current-time">0:00</div>
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar">
+                        <div class="progress-filled"></div>
+                    </div>
+                </div>
+                <div class="time duration">0:00</div>
+            </div>
+            <button id="volume-btn" class="volume-btn">
+                <svg viewBox="0 0 24 24">
+                    <path class="volume-icon" d="M3 9v6h4l5 5V4L7 9H3z"/>
+                    <path class="volume-wave" d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+                    <path class="volume-wave-outer" d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Quran verse display -->
+    <div class="ayah-display">
+        <div id="arabic-text" class="arabic-text"></div>
+        <div id="translation-text" class="translation-text"></div>
+    </div>
+
+    <!-- Ambient glow effects -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
 
     <!-- External JavaScript -->
     <script src="script.js"></script>
