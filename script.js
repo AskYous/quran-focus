@@ -149,6 +149,7 @@ let castSession = null;
 /**
  * Initialize the Cast SDK
  */
+// eslint-disable-next-line no-undef
 window.__onGCastApiAvailable = function (isAvailable) {
   if (isAvailable) {
     initializeCastApi();
@@ -160,27 +161,34 @@ window.__onGCastApiAvailable = function (isAvailable) {
  */
 function initializeCastApi() {
   // Define APP_ID here, once the API is available
+  // eslint-disable-next-line no-undef
   const APP_ID = chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID;
 
+  // eslint-disable-next-line no-undef
   castContext = cast.framework.CastContext.getInstance();
   castContext.setOptions({
     receiverApplicationId: APP_ID,
+    // eslint-disable-next-line no-undef
     autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
     // Add other options if needed
   });
 
   // Remote Player Controller
+  // eslint-disable-next-line no-undef
   const remotePlayer = new cast.framework.RemotePlayer();
+  // eslint-disable-next-line no-undef
   const remotePlayerController = new cast.framework.RemotePlayerController(remotePlayer);
 
   // Add event listeners for remote player changes
   remotePlayerController.addEventListener(
+    // eslint-disable-next-line no-undef
     cast.framework.RemotePlayerEventType.IS_PAUSED_CHANGED,
     () => {
       updatePlayPauseButton(remotePlayer.isPaused);
     }
   );
   remotePlayerController.addEventListener(
+    // eslint-disable-next-line no-undef
     cast.framework.RemotePlayerEventType.MEDIA_INFO_CHANGED,
     () => {
       const mediaInfo = remotePlayer.mediaInfo;
@@ -199,10 +207,12 @@ function initializeCastApi() {
 
   // Add event listeners for cast state changes
   castContext.addEventListener(
+    // eslint-disable-next-line no-undef
     cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
     handleSessionStateChange
   );
   castContext.addEventListener(
+    // eslint-disable-next-line no-undef
     cast.framework.CastContextEventType.CAST_STATE_CHANGED,
     handleCastStateChange
   );
@@ -216,11 +226,14 @@ function initializeCastApi() {
  */
 function handleSessionStateChange(event) {
   console.log('Session state changed:', event.sessionState);
+  // eslint-disable-next-line no-undef
   castSession = castContext.getCurrentSession();
   const audioContainer = document.querySelector('.audio-container');
 
   switch (event.sessionState) {
+    // eslint-disable-next-line no-undef
     case cast.framework.SessionState.SESSION_STARTED:
+    // eslint-disable-next-line no-undef
     case cast.framework.SessionState.SESSION_RESUMED:
       console.log('Cast session active.');
       if (audioContainer) audioContainer.classList.add('casting-active');
@@ -232,6 +245,7 @@ function handleSessionStateChange(event) {
       // If resuming, load current media onto cast device? (Or rely on receiver state)
       // castMedia(currentAyahNumber); // Might cause double load if receiver remembers
       break;
+    // eslint-disable-next-line no-undef
     case cast.framework.SessionState.SESSION_ENDED:
       console.log('Cast session ended.');
       if (audioContainer) audioContainer.classList.remove('casting-active');
@@ -239,14 +253,17 @@ function handleSessionStateChange(event) {
       // Ensure local player button is reset (e.g., to play state)
       updatePlayPauseButton(true);
       break;
+    // eslint-disable-next-line no-undef
     case cast.framework.SessionState.SESSION_START_FAILED:
+    // eslint-disable-next-line no-undef
     case cast.framework.SessionState.SESSION_ENDING:
-    case cast.framework.SessionState.SESSION_ENDED:
-      console.log('Cast session ended or failed to start.');
-      if (audioContainer) audioContainer.classList.remove('casting-active');
-      castSession = null;
-      updatePlayPauseButton(true);
-      break;
+    // eslint-disable-next-line no-undef
+    // case cast.framework.SessionState.SESSION_ENDED: // Duplicate, handled above
+    //   console.log('Cast session ended or failed to start.');
+    //   if (audioContainer) audioContainer.classList.remove('casting-active');
+    //   castSession = null;
+    //   updatePlayPauseButton(true);
+    //   break;
   }
 }
 
@@ -1532,4 +1549,17 @@ function setupFullscreenToggle() {
 
   // Initial icon state
   updateFullscreenIcon();
+}
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(registration => {
+        console.log('Service Worker registered: ', registration);
+      })
+      .catch(registrationError => {
+        console.log('Service Worker registration failed: ', registrationError);
+      });
+  });
 } 
