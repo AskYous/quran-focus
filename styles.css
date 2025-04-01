@@ -833,8 +833,10 @@ p, h1, h2, h3, h4, h5, h6, span, label {
   font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.6); /* Muted color */
   text-align: center;
-  margin-bottom: 1.5rem; /* Adjusted from 0.75rem */
+  margin-bottom: 0; /* Removed margin as it's now the last element */
   letter-spacing: 1px;
+  /* Add some top margin if needed for spacing from translation */
+  /* margin-top: 1.5rem; */
 }
 
 /* Top Settings Bar */
