@@ -603,8 +603,8 @@ function createAyahTransition() {
 // Simplified function to create text glow effects for both Arabic and English
 function addTextGlowEffects() {
   const elements = [
-    { id: 'arabic-text', containerClass: 'ayah-glow-container', particlesClass: 'ayah-light-particles', particleCount: 8 },
-    { id: 'translation-text', containerClass: 'translation-glow-container', particlesClass: 'translation-light-particles', particleCount: 6 }
+    { id: 'arabic-text', containerClass: 'ayah-glow-container' },
+    { id: 'translation-text', containerClass: 'translation-glow-container' }
   ];
 
   // Process each text element
@@ -618,25 +618,6 @@ function addTextGlowEffects() {
       glowContainer.className = element.containerClass;
       textElement.parentNode.insertBefore(glowContainer, textElement);
       glowContainer.appendChild(textElement);
-    }
-
-    // Create particles container if it doesn't exist
-    if (!document.querySelector('.' + element.particlesClass)) {
-      const particlesContainer = document.createElement('div');
-      particlesContainer.className = element.particlesClass;
-
-      // Add individual particles
-      for (let i = 0; i < element.particleCount; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'light-particle ' + (element.id === 'translation-text' ? 'translation-particle' : '');
-        particlesContainer.appendChild(particle);
-      }
-
-      // Add particles to the DOM
-      const container = document.querySelector('.' + element.containerClass);
-      if (container) {
-        container.appendChild(particlesContainer);
-      }
     }
   });
 }
