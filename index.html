@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="styles.css">
     <!-- Particles JS -->
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <!-- Chromecast SDK -->
+    <script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
 </head>
 <body>
     <!-- Particles background container -->
@@ -67,6 +69,9 @@
                     <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
                 </svg>
             </button>
+
+            <!-- Chromecast Button -->
+            <google-cast-launcher id="cast-button" class="settings-button"></google-cast-launcher>
 
         </div>
     </div>

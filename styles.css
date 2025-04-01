@@ -950,4 +950,32 @@ p, h1, h2, h3, h4, h5, h6, span, label {
   width: 20px;
   height: 20px;
   fill: currentColor;
+}
+
+/* Add styles for when casting is active */
+.audio-container.casting-active #custom-audio-player .nav-btn,
+.audio-container.casting-active #custom-audio-player .play-pause-btn {
+    opacity: 0.5; /* Dim the local controls */
+    pointer-events: none; /* Disable clicks on local controls */
+    cursor: default;
+}
+
+/* Ensure cast button aligns well if needed (adjust as necessary) */
+#cast-button {
+    /* Add specific styles if alignment in the settings bar isn't right */
+    /* e.g., vertical-align: middle; margin-left: 8px; */
+    width: 24px; /* Match fullscreen button size */
+    height: 24px;
+    padding: 0; /* Remove default padding if any */
+    border: none;
+    background: none;
+    color: #fff; /* Match icon color */
+    cursor: pointer;
+}
+
+/* You might need to hide the default cast button border/background */
+google-cast-launcher {
+    --cast-button-size: 24px; /* Control size */
+    vertical-align: middle; /* Align with other buttons */
+    margin-left: 10px; /* Add some space */
 } 

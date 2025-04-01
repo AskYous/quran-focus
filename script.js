@@ -139,6 +139,193 @@ let isUserInteractingWithSettings = false;
 const verseCache = new Map();
 let nextVersePreloader = null;
 
+// Chromecast variables
+let castContext = null;
+let castSession = null;
+
+/**
+ * Initialize the Cast SDK
+ */
+window.__onGCastApiAvailable = function (isAvailable) {
+  if (isAvailable) {
+    initializeCastApi();
+  }
+};
+
+/**
+ * Initializes the Cast API
+ */
+function initializeCastApi() {
+  // Define APP_ID here, once the API is available
+  const APP_ID = chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID;
+
+  castContext = cast.framework.CastContext.getInstance();
+  castContext.setOptions({
+    receiverApplicationId: APP_ID,
+    autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+    // Add other options if needed
+  });
+
+  // Remote Player Controller
+  const remotePlayer = new cast.framework.RemotePlayer();
+  const remotePlayerController = new cast.framework.RemotePlayerController(remotePlayer);
+
+  // Add event listeners for remote player changes
+  remotePlayerController.addEventListener(
+    cast.framework.RemotePlayerEventType.IS_PAUSED_CHANGED,
+    () => {
+      updatePlayPauseButton(remotePlayer.isPaused);
+    }
+  );
+  remotePlayerController.addEventListener(
+    cast.framework.RemotePlayerEventType.MEDIA_INFO_CHANGED,
+    () => {
+      const mediaInfo = remotePlayer.mediaInfo;
+      if (mediaInfo) {
+        console.log("Remote media info changed:", mediaInfo);
+        // Optionally update local UI based on remote media info
+        // e.g., update displayed Surah/Ayah if possible from metadata
+        updatePlayPauseButton(remotePlayer.isPaused); // Ensure button state is correct
+      } else {
+        // No media loaded on receiver
+        updatePlayPauseButton(true);
+      }
+    }
+  );
+  // Add more listeners as needed (e.g., IS_MUTED_CHANGED, VOLUME_LEVEL_CHANGED)
+
+  // Add event listeners for cast state changes
+  castContext.addEventListener(
+    cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
+    handleSessionStateChange
+  );
+  castContext.addEventListener(
+    cast.framework.CastContextEventType.CAST_STATE_CHANGED,
+    handleCastStateChange
+  );
+
+  console.log('Cast SDK initialized.');
+}
+
+/**
+ * Handles cast session state changes.
+ * @param {cast.framework.SessionStateEventData} event
+ */
+function handleSessionStateChange(event) {
+  console.log('Session state changed:', event.sessionState);
+  castSession = castContext.getCurrentSession();
+  const audioContainer = document.querySelector('.audio-container');
+
+  switch (event.sessionState) {
+    case cast.framework.SessionState.SESSION_STARTED:
+    case cast.framework.SessionState.SESSION_RESUMED:
+      console.log('Cast session active.');
+      if (audioContainer) audioContainer.classList.add('casting-active');
+      // Pause local player if it was playing
+      const localPlayer = document.getElementById('ayah-audio-player');
+      if (localPlayer instanceof HTMLAudioElement) {
+        localPlayer.pause();
+      }
+      // If resuming, load current media onto cast device? (Or rely on receiver state)
+      // castMedia(currentAyahNumber); // Might cause double load if receiver remembers
+      break;
+    case cast.framework.SessionState.SESSION_ENDED:
+      console.log('Cast session ended.');
+      if (audioContainer) audioContainer.classList.remove('casting-active');
+      castSession = null;
+      // Ensure local player button is reset (e.g., to play state)
+      updatePlayPauseButton(true);
+      break;
+    case cast.framework.SessionState.SESSION_START_FAILED:
+    case cast.framework.SessionState.SESSION_ENDING:
+    case cast.framework.SessionState.SESSION_ENDED:
+      console.log('Cast session ended or failed to start.');
+      if (audioContainer) audioContainer.classList.remove('casting-active');
+      castSession = null;
+      updatePlayPauseButton(true);
+      break;
+  }
+}
+
+/**
+ * Handles cast state changes (e.g., available devices).
+ * @param {cast.framework.CastStateEventData} event
+ */
+function handleCastStateChange(event) {
+  console.log('Cast state changed:', event.castState);
+  // You can update the UI based on whether Cast devices are available
+  const castButton = document.getElementById('cast-button');
+  if (castButton) {
+    // Use NO_DEVICES_AVAILABLE check
+    castButton.style.display = (event.castState === cast.framework.CastState.NO_DEVICES_AVAILABLE) ? 'none' : 'inline-block';
+  }
+}
+
+/**
+ * Loads and plays the specified Ayah on the cast device.
+ * @param {number} globalAyahNumber The global Ayah number.
+ */
+async function castMedia(globalAyahNumber) {
+  if (!castSession) {
+    console.error("No active cast session found.");
+    return;
+  }
+
+  const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(globalAyahNumber);
+  const surahData = quranData.find(s => s.number === surahNumber);
+  const surahName = surahData ? surahData.name.split(' (')[0] : `Surah ${surahNumber}`; // Get cleaner Surah name
+
+  try {
+    // Fetch verse data for metadata (or get from cache if available)
+    const cacheKey = `${surahNumber}:${ayahWithinSurah}`;
+    let verseData = verseCache.has(cacheKey) ? verseCache.get(cacheKey) : await fetchQuranVerse(surahNumber, ayahWithinSurah);
+
+    if (verseData.error) {
+      console.error("Error fetching verse data for casting:", verseData.error);
+      // Handle error - maybe display a message
+      return;
+    }
+
+    // Calculate padded surah and ayah numbers
+    const paddedSurah = padNumber(surahNumber, 3);
+    const paddedAyah = padNumber(ayahWithinSurah, 3);
+
+    // Construct the new audio URL
+    const audioURL = `https://everyayah.com/data/khalefa_al_tunaiji_64kbps/${paddedSurah}${paddedAyah}.mp3`;
+
+    const mediaInfo = new chrome.cast.media.MediaInfo(audioURL, 'audio/mp3');
+
+    // --- Metadata ---
+    mediaInfo.metadata = new chrome.cast.media.GenericMediaMetadata();
+    mediaInfo.metadata.metadataType = chrome.cast.media.MetadataType.GENERIC;
+    mediaInfo.metadata.title = `${surahName}, Ayah ${ayahWithinSurah}`;
+    mediaInfo.metadata.subtitle = verseData.english.substring(0, 100) + (verseData.english.length > 100 ? '...' : ''); // Snippet of translation
+
+    // Optional: Add artwork (e.g., app icon or generic Quran image)
+    // mediaInfo.metadata.images = [
+    //     new chrome.cast.Image('url_to_your_image.png')
+    // ];
+    // --- End Metadata ---
+
+    const request = new chrome.cast.media.LoadRequest(mediaInfo);
+
+    // Optional: Set autoplay, start time etc.
+    request.autoplay = true;
+    // request.currentTime = 0; // Start from beginning
+
+    console.log(`Casting Ayah ${globalAyahNumber}: ${surahName} ${ayahWithinSurah}`);
+
+    await castSession.loadMedia(request);
+    console.log('Media loaded successfully on cast device.');
+    updatePlayPauseButton(false); // Update button to PAUSE after successful load/play
+
+  } catch (error) {
+    console.error('Error casting media:', error);
+    // Handle casting error (e.g., show message to user)
+    updatePlayPauseButton(true); // Set button back to PLAY on error
+  }
+}
+
 // Function to preload the next verse
 async function preloadNextVerse(currentSurah, currentAyah) {
   try {
@@ -182,7 +369,16 @@ async function preloadNextVerse(currentSurah, currentAyah) {
 function preloadAudio(ayahNumber) {
   // Create a temporary audio element for preloading
   const tempAudio = new Audio();
-  const audioURL = `https://cdn.islamic.network/quran/audio/128/ar.ahmedajamy/${ayahNumber}.mp3`;
+
+  // Calculate surah and ayah numbers from the global ayah number
+  const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(ayahNumber);
+
+  // Calculate padded surah and ayah numbers
+  const paddedSurah = padNumber(surahNumber, 3);
+  const paddedAyah = padNumber(ayahWithinSurah, 3);
+
+  // Construct the new audio URL
+  const audioURL = `https://everyayah.com/data/khalefa_al_tunaiji_64kbps/${paddedSurah}${paddedAyah}.mp3`;
 
   // Just load the audio, don't play it
   tempAudio.src = audioURL;
@@ -227,6 +423,12 @@ async function fetchQuranVerse(surahNumber, ayahNumber) {
 }
 
 // UTILITY MODULE
+
+// Helper function to pad numbers with leading zeros
+function padNumber(num, length) {
+  return String(num).padStart(length, '0');
+}
+
 function calculateGlobalAyahNumber(surahNumber, ayahNumber) {
   surahNumber = parseInt(surahNumber);
   ayahNumber = parseInt(ayahNumber);
@@ -270,8 +472,15 @@ function getSurahAyahCount(surahNum) {
 
 // AUDIO CONTROL MODULE
 function playAyahAudio(ayahNumber) {
-  // Use the correct ID for Ahmed ibn Ali al-Ajamy: ar.ahmedajamy
-  const audioURL = `https://cdn.islamic.network/quran/audio/128/ar.ahmedajamy/${ayahNumber}.mp3`;
+  // Calculate surah and ayah numbers from the global ayah number
+  const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(ayahNumber);
+
+  // Calculate padded surah and ayah numbers
+  const paddedSurah = padNumber(surahNumber, 3);
+  const paddedAyah = padNumber(ayahWithinSurah, 3);
+
+  // Construct the new audio URL
+  const audioURL = `https://everyayah.com/data/khalefa_al_tunaiji_64kbps/${paddedSurah}${paddedAyah}.mp3`;
 
   // Set the audio source
   const audioPlayerElement = document.getElementById('ayah-audio-player');
@@ -309,22 +518,31 @@ function playAyahAudio(ayahNumber) {
   return Promise.resolve();
 }
 
+// Modified togglePlayPause to handle casting
 function togglePlayPause() {
-  const audioPlayerElement = document.getElementById('ayah-audio-player');
-  if (!(audioPlayerElement instanceof HTMLAudioElement)) return;
-  const audioPlayer = audioPlayerElement;
-
-  if (audioPlayer.paused) {
-    if (!audioPlayer.src || audioPlayer.src === window.location.href) {
-      // No valid source - load current ayah
-      loadAndDisplayAyah(currentAyahNumber);
-      setTimeout(() => playAudio(), 300); // Call playAudio which also checks type
-    } else {
-      playAudio(); // Call playAudio which also checks type
-    }
+  if (castSession) {
+    // Casting session active - control remote player
+    const remotePlayer = new cast.framework.RemotePlayer();
+    const remotePlayerController = new cast.framework.RemotePlayerController(remotePlayer);
+    remotePlayerController.playOrPause();
+    // The button state will be updated by the IS_PAUSED_CHANGED listener
   } else {
-    audioPlayer.pause();
-    updatePlayPauseButton(true);
+    // No casting session - control local player
+    const audioPlayerElement = document.getElementById('ayah-audio-player');
+    if (!(audioPlayerElement instanceof HTMLAudioElement)) return;
+    const audioPlayer = audioPlayerElement;
+
+    if (audioPlayer.paused) {
+      if (!audioPlayer.src || audioPlayer.src === window.location.href) {
+        // No valid source - load current ayah
+        loadAndDisplayAyah(currentAyahNumber); // Use loadAndDisplayAyah which handles play
+      } else {
+        playAudio(); // Play existing source
+      }
+    } else {
+      audioPlayer.pause();
+      updatePlayPauseButton(true);
+    }
   }
 }
 
@@ -1061,11 +1279,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Modified loadVerse function to use cache when available
+// Modified loadVerse function to use cache when available and handle casting
 async function loadVerse(surahNumber, ayahNumber) {
-  // Save current position to history state
-  currentSurahNumber = surahNumber;
-  currentAyahNumber = ayahNumber;
+  const globalAyahNumber = calculateGlobalAyahNumber(surahNumber, ayahNumber);
+  currentAyahNumber = globalAyahNumber; // Update global state
 
   // Update URL without triggering a page reload
   const newUrl = `?surah=${surahNumber}&ayah=${ayahNumber}`;
@@ -1073,15 +1290,39 @@ async function loadVerse(surahNumber, ayahNumber) {
 
   // Set the surah selector
   const surahSelect = document.getElementById('surah-select');
-  if (surahSelect) {
-    surahSelect.value = surahNumber;
+  if (surahSelect instanceof HTMLSelectElement) { // Type guard
+    surahSelect.value = String(surahNumber); // Ensure value is string
   }
 
   // Generate a cache key
   const cacheKey = `${surahNumber}:${ayahNumber}`;
-
-  // Try to get the verse from cache
   let verseData;
+
+  // Check for active Cast session *before* fetching/displaying locally
+  if (castSession && castSession.getSessionState() === cast.framework.SessionState.SESSION_STARTED) {
+    console.log("Cast session active. Loading media via castMedia.");
+    // Fetch data needed for display (even if casting, we show text locally)
+    if (verseCache.has(cacheKey)) {
+      verseData = verseCache.get(cacheKey);
+    } else {
+      verseData = await fetchQuranVerse(surahNumber, ayahNumber);
+      if (!verseData.error) {
+        verseCache.set(cacheKey, verseData); // Add to cache
+      }
+    }
+    if (!verseData.error) {
+      await displayVerse(surahNumber, ayahNumber, verseData); // Display text locally
+      await castMedia(globalAyahNumber); // Load and play on Cast device
+    } else {
+      console.error("Error fetching verse data before casting:", verseData.error);
+      // Handle error (e.g., display error message locally)
+    }
+    return; // Exit function after initiating cast
+  }
+
+  // --- If not casting, proceed with local playback logic ---
+  console.log("No active cast session. Loading media locally.");
+  // Try to get the verse from cache
   if (verseCache.has(cacheKey)) {
     verseData = verseCache.get(cacheKey);
     await displayVerse(surahNumber, ayahNumber, verseData);
@@ -1089,15 +1330,38 @@ async function loadVerse(surahNumber, ayahNumber) {
     // If not in cache, fetch it normally
     try {
       verseData = await fetchQuranVerse(surahNumber, ayahNumber);
-      verseCache.set(cacheKey, verseData); // Add to cache
-      await displayVerse(surahNumber, ayahNumber, verseData);
+      if (!verseData.error) {
+        verseCache.set(cacheKey, verseData); // Add to cache
+        await displayVerse(surahNumber, ayahNumber, verseData);
+      } else {
+        console.error("Error fetching verse data for local display:", verseData.error);
+        // Handle error - maybe display error message locally
+        // Display *something* even on error?
+        const arabicTextElement = document.getElementById('arabic-text');
+        const translationTextElement = document.getElementById('translation-text');
+        if (arabicTextElement) arabicTextElement.textContent = 'Error loading verse.';
+        if (translationTextElement) translationTextElement.textContent = verseData.error;
+      }
     } catch (error) {
       console.error("Error loading verse:", error);
+      // Display error message locally
+      const arabicTextElement = document.getElementById('arabic-text');
+      const translationTextElement = document.getElementById('translation-text');
+      if (arabicTextElement) arabicTextElement.textContent = 'Error loading verse.';
+      if (translationTextElement) translationTextElement.textContent = 'Failed to fetch verse data.';
     }
   }
 
-  // Handle audio loading and playing
-  return playAyahAudio(currentAyahNumber);
+  // If verse data was loaded successfully (either from cache or fetch), prepare local audio
+  if (verseData && !verseData.error) {
+    // Preload and prepare local audio player
+    await playAyahAudio(globalAyahNumber);
+    // Attempt to autoplay locally (browser might block this)
+    playAudio();
+  }
+  // Preload the *next* verse regardless of play success
+  preloadNextVerse(surahNumber, ayahNumber);
+  limitCacheSize(); // Check cache size
 }
 
 // Handle navigation buttons to use the cache
