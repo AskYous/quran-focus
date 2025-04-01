@@ -92,6 +92,7 @@
     
     <!-- Quran verse display -->
     <div class="ayah-display">
+        <div id="ayah-reference" class="ayah-reference"></div>
         <div id="arabic-text" class="arabic-text"></div>
         <div id="translation-text" class="translation-text"></div>
     </div>
@@ -117,7 +118,7 @@
         ]).then(() => {
           // Add a class when fonts are loaded
           document.documentElement.classList.add('fonts-loaded');
-        });
+        }).catch(err => console.error("Font loading error:", err));
       }
     </script>
 </body>

@@ -519,10 +519,13 @@ function updateAyahMetadata(ayahData) {
 
 function updateGlowElements() {
   const glowElements = document.querySelectorAll('.ambient-glow');
-  glowElements.forEach(el => {
-    const randomX = Math.floor(Math.random() * 300) - 150;
-    const randomY = Math.floor(Math.random() * 300) - 150;
-    el.style.transform = `translate(${randomX}px, ${randomY}px)`;
+  glowElements.forEach((el) => {
+    if (el instanceof HTMLElement) { // Type check
+      const newTop = Math.random() * 100 - 50;
+      const newLeft = Math.random() * 100 - 50;
+      el.style.top = `${newTop}%`;
+      el.style.left = `${newLeft}%`;
+    }
   });
 }
 
@@ -699,15 +702,21 @@ async function displayVerse(surahNumber, ayahNumber, verseData) {
   // Get the text elements
   const arabicTextElement = document.getElementById('arabic-text');
   const translationTextElement = document.getElementById('translation-text');
+  const ayahReferenceElement = document.getElementById('ayah-reference'); // Get reference element
 
   // Clear previous content immediately
   if (arabicTextElement) arabicTextElement.innerHTML = '';
   if (translationTextElement) translationTextElement.innerHTML = '';
+  if (ayahReferenceElement) ayahReferenceElement.textContent = ''; // Clear reference
 
   // Ensure elements exist and are HTMLElements before proceeding
-  if (!(arabicTextElement instanceof HTMLElement) || !(translationTextElement instanceof HTMLElement)) return;
+  if (!(arabicTextElement instanceof HTMLElement) || !(translationTextElement instanceof HTMLElement) || !(ayahReferenceElement instanceof HTMLElement)) return;
   const arabicText = arabicTextElement;
   const translationText = translationTextElement;
+  const ayahReference = ayahReferenceElement;
+
+  // Display Ayah Reference
+  ayahReference.textContent = `${surahNumber}:${ayahNumber}`; // Set the reference text
 
   // Animation parameters
   const arabicWordDelay = 0.08; // Delay between each Arabic word
@@ -766,71 +775,61 @@ function handleSurahChange() {
 
   if (!(surahSelectElement instanceof HTMLSelectElement)) return;
   const surahSelect = surahSelectElement;
-  const ayahSelect = ayahSelectElement;
+  const ayahSelect = ayahSelectElement; // Initially HTMLElement | null
 
   const selectedSurahNumber = parseInt(surahSelect.value);
 
-  // Add subtle animation effect to the container
-  if (quranSelector) {
+  if (quranSelector instanceof HTMLElement) {
     quranSelector.classList.add('changing');
   }
 
-  // Update glow elements position randomly
   updateGlowElements();
 
-  // Clear and disable Ayah dropdown if no Surah is selected
   if (!selectedSurahNumber) {
-    // Add check for ayahSelect type before accessing disabled
-    if (ayahSelect instanceof HTMLSelectElement) {
+    if (ayahSelect instanceof HTMLSelectElement) { // Check specific type for disabled
       ayahSelect.innerHTML = '<option value="">--Please select a Surah first--</option>';
       ayahSelect.disabled = true;
     }
     if (referenceText instanceof HTMLElement) {
       referenceText.textContent = 'Please select a Surah and Ayah to see the reference.';
     }
-    if (quranSelector) {
+    if (quranSelector instanceof HTMLElement) {
       quranSelector.classList.remove('changing');
     }
 
-    // Hide verse container if no surah selected
-    if (verseContainer) {
+    if (verseContainer instanceof HTMLElement) {
       verseContainer.classList.remove('visible');
     }
     return;
   }
 
-  // Save selection to local storage (without ayah yet)
   saveSelectionsToLocalStorage(selectedSurahNumber, "1");
-
-  // Find the selected Surah data
   const selectedSurah = quranData.find(surah => surah.number === selectedSurahNumber);
 
-  // Add loading animation
-  if (referenceText) {
+  if (referenceText instanceof HTMLElement) {
     referenceText.innerHTML = 'Loading <span class="loading-dots"><span></span><span></span><span></span></span>';
   }
 
-  // Simulate loading delay for a smoother experience
   setTimeout(() => {
-    if (ayahSelect && selectedSurah) {
-      // Enable and populate Ayah dropdown
+    if (ayahSelect instanceof HTMLSelectElement && selectedSurah) {
       populateAyahSelect(selectedSurahNumber);
 
-      // Check ayahSelect again after population, ensure it's HTMLSelectElement
       const populatedAyahSelect = document.getElementById('ayah-select');
       if (populatedAyahSelect instanceof HTMLSelectElement && populatedAyahSelect.options.length > 1) {
         populatedAyahSelect.selectedIndex = 1;
         populatedAyahSelect.dispatchEvent(new Event('change'));
       } else {
-        // If no Ayahs were populated, update reference text accordingly
-        if (referenceText) {
+        if (referenceText instanceof HTMLElement) {
           referenceText.textContent = `Selected Surah: ${selectedSurah.name}. Please select an Ayah.`;
         }
       }
+    } else if (ayahSelect && selectedSurah) { // Handle case if it exists but isn't a select (though unlikely)
+      if (referenceText instanceof HTMLElement) {
+        referenceText.textContent = `Selected Surah: ${selectedSurah.name}. (Ayah selector not found/invalid)`;
+      }
     }
 
-    // Remove animation class
-    if (quranSelector) {
+    if (quranSelector instanceof HTMLElement) {
       quranSelector.classList.remove('changing');
     }
   }, 600);
@@ -849,14 +848,9 @@ function handleAyahChange() {
 
   if (!selectedSurahNumber || !selectedAyahNumber) return;
 
-  // Save the selection
   saveSelectionsToLocalStorage(selectedSurahNumber, selectedAyahNumber);
-
-  // Calculate global ayah number
   const globalAyahNumber = calculateGlobalAyahNumber(selectedSurahNumber, selectedAyahNumber);
   currentAyahNumber = globalAyahNumber;
-
-  // Fetch verse data and handle transition
   fetchQuranVerse(selectedSurahNumber, selectedAyahNumber)
     .then(verseData => {
       if (!verseData.error) {
@@ -864,8 +858,6 @@ function handleAyahChange() {
       }
     })
     .catch(error => console.error("Error fetching verse:", error));
-
-  // Load audio without playing
   playAyahAudio(globalAyahNumber);
 }
 
@@ -873,14 +865,14 @@ function handleMouseMove(e) {
   const mouseX = e.clientX / window.innerWidth;
   const mouseY = e.clientY / window.innerHeight;
 
-  // Subtle parallax effect on glow elements
   const glowElements = document.querySelectorAll('.ambient-glow');
-  glowElements.forEach((el, index) => {
-    const depth = index + 1;
-    const moveX = (mouseX - 0.5) * depth * 30;
-    const moveY = (mouseY - 0.5) * depth * 30;
-
-    el.style.transform = `translate(${moveX}px, ${moveY}px)`;
+  glowElements.forEach((el) => { // Removed unused index
+    if (el instanceof HTMLElement) { // Check type for style access
+      const depth = parseFloat(el.dataset.depth || '1'); // Example: Use data-depth if available
+      const moveX = (mouseX - 0.5) * depth * 30;
+      const moveY = (mouseY - 0.5) * depth * 30;
+      el.style.transform = `translate(${moveX}px, ${moveY}px)`;
+    }
   });
 }
 
@@ -977,20 +969,20 @@ function setupEventListeners() {
   // Settings panel toggle
   const settingsToggle = document.getElementById('settings-toggle');
   const settingsPanel = document.getElementById('settings-panel');
-  if (settingsToggle && settingsPanel) {
-    settingsToggle.addEventListener('click', () => {
+  if (settingsToggle instanceof HTMLElement && settingsPanel instanceof HTMLElement) { // Check both are HTMLElements
+    settingsToggle.addEventListener('click', (event) => {
+      if (event.target instanceof Node && settingsPanel.contains(event.target)) {
+        return;
+      }
       settingsPanel.classList.toggle('hidden');
       settingsPanel.classList.toggle('visible');
     });
 
-    // Close settings when clicking outside
-    document.addEventListener('click', function (event) {
-      const isClickInsideSettings = settingsPanel.contains(event.target) ||
-        settingsToggle.contains(event.target);
-
-      if (!isClickInsideSettings && settingsPanel.classList.contains('visible')) {
-        settingsPanel.classList.remove('visible');
+    document.addEventListener('click', (event) => {
+      const target = event.target;
+      if (target instanceof Node && !settingsPanel.contains(target) && target !== settingsToggle && !settingsToggle.contains(target)) {
         settingsPanel.classList.add('hidden');
+        settingsPanel.classList.remove('visible');
       }
     });
   }
@@ -1036,6 +1028,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Wait until all options are loaded before setting defaults
     setTimeout(setDefaultSelections, quranData.length * 5 + 100);
   }, 500);
+
+  if ('fonts' in document) {
+    // Preload the primary Arabic font
+    Promise.all([
+      /** @type {Promise<void>} */(new Promise(resolve => document.fonts.load('1em "Scheherazade New"').then(() => resolve(undefined)))),
+      /** @type {Promise<void>} */(new Promise(resolve => document.fonts.load('1em "Amiri"').then(() => resolve(undefined)))),
+      /** @type {Promise<void>} */(new Promise(resolve => document.fonts.load('1em "Noto Sans Arabic"').then(() => resolve(undefined))))
+    ]).then(() => {
+      // Add a class when fonts are loaded
+      document.documentElement.classList.add('fonts-loaded');
+    });
+  }
 });
 
 // Modified loadVerse function to use cache when available
