@@ -1038,6 +1038,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Set up core functionality
   setupEventListeners();
   initCustomAudioPlayer();
+  setupFullscreenToggle(); // Call the new setup function
   resetSettingsBarHideTimeout(3500); // Initial hide for settings bar
 
   // Populate dropdowns with data
@@ -1175,4 +1176,71 @@ function resetSettingsBarHideTimeout(delay = 3000) {
       }
     }, delay);
   }
+}
+
+// Fullscreen Toggle Logic
+function setupFullscreenToggle() {
+  const fullscreenButton = document.getElementById('fullscreen-toggle');
+  const fullscreenIcon = fullscreenButton?.querySelector('.fullscreen-icon');
+  const exitFullscreenIcon = fullscreenButton?.querySelector('.exit-fullscreen-icon');
+
+  if (!fullscreenButton || !fullscreenIcon || !exitFullscreenIcon) {
+    console.warn("Fullscreen button or icons not found.");
+    return;
+  }
+
+  // Check if fullscreen is supported
+  if (!document.fullscreenEnabled && !document.webkitFullscreenEnabled && !document.mozFullScreenEnabled && !document.msFullscreenEnabled) {
+    fullscreenButton.style.display = 'none'; // Hide button if not supported
+    console.warn("Fullscreen API is not supported by this browser.");
+    return;
+  }
+
+  function updateFullscreenIcon() {
+    const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+    if (isFullscreen) {
+      fullscreenIcon.style.display = 'none';
+      exitFullscreenIcon.style.display = 'block';
+      fullscreenButton.title = "Exit Fullscreen";
+    } else {
+      fullscreenIcon.style.display = 'block';
+      exitFullscreenIcon.style.display = 'none';
+      fullscreenButton.title = "Enter Fullscreen";
+    }
+  }
+
+  fullscreenButton.addEventListener('click', () => {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+      // Enter fullscreen
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(err => console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`));
+      } else if (document.documentElement.webkitRequestFullscreen) { /* Safari */
+        document.documentElement.webkitRequestFullscreen().catch(err => console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`));
+      } else if (document.documentElement.mozRequestFullScreen) { /* Firefox */
+        document.documentElement.mozRequestFullScreen().catch(err => console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`));
+      } else if (document.documentElement.msRequestFullscreen) { /* IE11 */
+        document.documentElement.msRequestFullscreen().catch(err => console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`));
+      }
+    } else {
+      // Exit fullscreen
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(err => console.error(`Error attempting to disable full-screen mode: ${err.message} (${err.name})`));
+      } else if (document.webkitExitFullscreen) { /* Safari */
+        document.webkitExitFullscreen().catch(err => console.error(`Error attempting to disable full-screen mode: ${err.message} (${err.name})`));
+      } else if (document.mozCancelFullScreen) { /* Firefox */
+        document.mozCancelFullScreen().catch(err => console.error(`Error attempting to disable full-screen mode: ${err.message} (${err.name})`));
+      } else if (document.msExitFullscreen) { /* IE11 */
+        document.msExitFullscreen().catch(err => console.error(`Error attempting to disable full-screen mode: ${err.message} (${err.name})`));
+      }
+    }
+  });
+
+  // Update icon when fullscreen state changes (e.g., user presses ESC)
+  document.addEventListener('fullscreenchange', updateFullscreenIcon);
+  document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
+  document.addEventListener('mozfullscreenchange', updateFullscreenIcon);
+  document.addEventListener('MSFullscreenChange', updateFullscreenIcon);
+
+  // Initial icon state
+  updateFullscreenIcon();
 } 
