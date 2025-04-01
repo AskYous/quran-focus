@@ -279,8 +279,8 @@ function playAyahAudio(ayahNumber) {
     const audioPlayer = audioPlayerElement; // Type is now known
     audioPlayer.src = audioURL;
 
-    // Reset play button state
-    updatePlayPauseButton(false);
+    // Reset play button state to PLAY initially
+    updatePlayPauseButton(true);
 
     // Preload the audio
     audioPlayer.load();
