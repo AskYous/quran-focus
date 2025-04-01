@@ -496,16 +496,6 @@ body {
   transition: opacity 0.4s ease-out;
 }
 
-.pulse-animation {
-  animation: gentle-pulse 1.2s ease-out;
-}
-
-@keyframes gentle-pulse {
-  0% { opacity: 0; }
-  40% { opacity: 0.35; }
-  100% { opacity: 0; }
-}
-
 /* Settings toggle button */
 .settings-container {
   position: absolute;
@@ -799,26 +789,29 @@ p, h1, h2, h3, h4, h5, h6, span, label {
 }
 
 /* Smooth Ayah transitions */
-.arabic-text, .translation-text {
-  transition: opacity 0.3s ease, transform 0.4s ease;
-  opacity: 1;
-}
-
-.transition-out {
+/* These styles are now for the initial state of reveal spans */
+.reveal-word {
+  display: inline-block; /* Needed for transform and margin */
   opacity: 0;
   transform: translateY(10px);
+  animation: reveal-up 0.5s ease forwards;
 }
 
-.transition-in {
-  animation: fade-in 0.5s ease forwards;
+/* Add margin specifically to English words for spacing */
+.english-word {
+  margin-right: 0.25em; /* Adjust as needed */
 }
 
-@keyframes fade-in {
-  0% {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  100% {
+/* Ensure Arabic words flow correctly without extra margin */
+.arabic-word {
+  margin-right: 0; /* Explicitly remove margin if inherited */
+  /* Optional: Add tiny space if needed, but usually space inside span is enough for RTL */
+  /* margin-left: 0.1em; */ 
+}
+
+/* Keyframes for the reveal animation */
+@keyframes reveal-up {
+  to {
     opacity: 1;
     transform: translateY(0);
   }
@@ -846,10 +839,10 @@ p, h1, h2, h3, h4, h5, h6, span, label {
   display: none !important;
 }
 
-/* Make sure transitions still work properly */
-.arabic-text, .translation-text {
+/* Make sure transitions still work properly (If needed - commented out above) */
+/* .arabic-text, .translation-text {
   transition: opacity 0.3s ease, transform 0.4s ease;
-}
+} */
 
 /* Ayah Immersive Glow Effects */
 .ayah-glow-container, .translation-glow-container {
@@ -984,4 +977,10 @@ p, h1, h2, h3, h4, h5, h6, span, label {
 .arabic-text, .translation-text {
   transition: opacity 0.3s ease, transform 0.4s ease;
   opacity: 1;
+}
+
+/* Ensure spans within the text elements are visible once animated */
+.arabic-text span,
+.translation-text span {
+    pointer-events: auto;
 } 
