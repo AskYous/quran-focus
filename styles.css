@@ -216,15 +216,10 @@ body {
     0 0 20px rgba(78, 110, 242, 0.3);
   font-weight: 400;
   letter-spacing: 0.5px;
+  word-spacing: 0.5em;
   font-display: swap;
-  animation: text-glow 8s ease-in-out infinite;
   z-index: 6;
   position: relative;
-}
-
-@keyframes text-glow {
-  0%, 100% { text-shadow: 0 0 5px rgba(255, 255, 255, 0.3), 0 0 20px rgba(78, 110, 242, 0.3); }
-  50% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.5), 0 0 30px rgba(78, 110, 242, 0.5); }
 }
 
 /* Translation text styling */
@@ -237,6 +232,11 @@ body {
   max-width: 90%;
   margin-left: auto;
   margin-right: auto;
+  position: relative;
+  z-index: 6;
+  text-shadow: 
+    0 0 3px rgba(255, 255, 255, 0.2),
+    0 0 15px rgba(78, 110, 242, 0.2);
 }
 
 /* Verse meta information */
@@ -805,8 +805,7 @@ p, h1, h2, h3, h4, h5, h6, span, label {
 /* Ensure Arabic words flow correctly without extra margin */
 .arabic-word {
   margin-right: 0; /* Explicitly remove margin if inherited */
-  /* Optional: Add tiny space if needed, but usually space inside span is enough for RTL */
-  /* margin-left: 0.1em; */ 
+  margin-left: 0.25em; /* Add left margin for spacing in RTL - Adjusted */
 }
 
 /* Keyframes for the reveal animation */
@@ -933,8 +932,8 @@ p, h1, h2, h3, h4, h5, h6, span, label {
     0 0 20px rgba(78, 110, 242, 0.3);
   font-weight: 400;
   letter-spacing: 0.5px;
+  word-spacing: 0.5em;
   font-display: swap;
-  animation: text-glow 8s ease-in-out infinite;
   z-index: 6;
   position: relative;
 }
@@ -943,7 +942,7 @@ p, h1, h2, h3, h4, h5, h6, span, label {
   font-size: 1.2rem;
   line-height: 1.6;
   text-align: center;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.85);
   margin-bottom: 1.5rem;
   max-width: 90%;
   margin-left: auto;
@@ -953,25 +952,10 @@ p, h1, h2, h3, h4, h5, h6, span, label {
   text-shadow: 
     0 0 3px rgba(255, 255, 255, 0.2),
     0 0 15px rgba(78, 110, 242, 0.2);
-  animation: translation-text-glow 10s ease-in-out infinite;
 }
 
 /* Text glow animations */
-@keyframes text-glow {
-  0%, 100% { text-shadow: 0 0 5px rgba(255, 255, 255, 0.3), 0 0 20px rgba(78, 110, 242, 0.3); }
-  50% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.5), 0 0 30px rgba(78, 110, 242, 0.5); }
-}
-
-@keyframes translation-text-glow {
-  0%, 100% { 
-    text-shadow: 0 0 3px rgba(255, 255, 255, 0.2), 0 0 15px rgba(78, 110, 242, 0.2);
-    color: rgba(255, 255, 255, 0.85);
-  }
-  50% { 
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3), 0 0 20px rgba(78, 110, 242, 0.3);
-    color: rgba(255, 255, 255, 0.95);
-  }
-}
+/* @keyframes text-glow { ... } */ /* Already removed/commented */
 
 /* Transitions */
 .arabic-text, .translation-text {
