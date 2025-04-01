@@ -488,140 +488,6 @@ body {
   transition: opacity 0.4s ease-out;
 }
 
-/* Settings toggle button */
-.settings-container {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  z-index: 10;
-}
-
-.settings-toggle {
-  background: rgba(78, 110, 242, 0.15);
-  border: 1px solid rgba(78, 110, 242, 0.2);
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-}
-
-.settings-toggle:hover {
-  background: rgba(78, 110, 242, 0.3);
-  transform: translateY(-2px);
-}
-
-.settings-toggle svg {
-  width: 24px;
-  height: 24px;
-  fill: #e0e0e0;
-}
-
-/* Settings panel */
-.settings-panel {
-  position: absolute;
-  top: 5rem;
-  right: 1rem;
-  background: rgba(15, 17, 26, 0.95);
-  backdrop-filter: blur(8px);
-  border-radius: 12px;
-  padding: 1.5rem;
-  width: 280px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  z-index: 9;
-  transition: all 0.3s ease;
-  overflow: hidden;
-}
-
-.settings-panel.hidden {
-  opacity: 0;
-  transform: translateY(-20px);
-  pointer-events: none;
-}
-
-.settings-panel.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Metadata section in settings panel */
-.settings-panel .metadata-section {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(78, 110, 242, 0.2);
-}
-
-.metadata-heading {
-  font-size: 1rem;
-  font-weight: 500;
-  margin-bottom: 1rem;
-  color: #e0e0e0;
-}
-
-.metadata-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;
-}
-
-.metadata-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: rgba(30, 34, 51, 0.4);
-  border-radius: 8px;
-  padding: 0.75rem 0.5rem;
-  transition: all 0.3s ease;
-}
-
-.metadata-item:hover {
-  background: rgba(30, 34, 51, 0.6);
-}
-
-.metadata-label {
-  font-size: 0.8rem;
-  color: #a0a0a0;
-  margin-bottom: 0.25rem;
-}
-
-.metadata-value {
-  font-size: 1.1rem;
-  font-weight: 500;
-  color: #e0e0e0;
-}
-
-/* Make the settings panel slightly larger to accommodate the metadata */
-.settings-panel {
-  width: 320px;
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-/* If you have any CSS for metadata in the main UI, you might need to remove or modify it */
-/* For example, if you have something like this: */
-
-/* 
-.ayah-metadata {
-  display: flex;
-  justify-content: space-around;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(78, 110, 242, 0.2);
-}
-
-.metadata-item {
-  font-size: 0.9rem;
-  color: #a0a0a0;
-}
-*/
-
 /* Audio player refinements - removing the gray background */
 .audio-container {
   background: transparent;
@@ -969,4 +835,92 @@ p, h1, h2, h3, h4, h5, h6, span, label {
   text-align: center;
   margin-bottom: 0.75rem; /* Space below reference */
   letter-spacing: 1px;
+}
+
+/* Top Settings Bar */
+#top-settings-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(15, 17, 26, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 1rem 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  z-index: 1000; /* Ensure it's above other elements */
+  transform: translateY(-100%);
+  transition: transform 0.4s ease-in-out;
+}
+
+#top-settings-bar.visible {
+  transform: translateY(0);
+}
+
+.settings-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center items horizontally */
+  gap: 1.5rem;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+/* Style adjustments for elements inside the top bar */
+#top-settings-bar .form-group {
+  margin-bottom: 0; /* Remove bottom margin */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#top-settings-bar .form-group label {
+  margin-bottom: 0;
+  font-size: 0.85rem;
+  color: #b0b0b0;
+  white-space: nowrap;
+}
+
+#top-settings-bar .form-select {
+  padding: 0.5rem 0.8rem;
+  min-width: 150px; /* Adjust as needed */
+  background-color: rgba(30, 34, 51, 0.7);
+}
+
+#top-settings-bar .select-wrapper {
+  position: relative;
+}
+
+/* Re-apply metadata styles specifically for the top bar */
+#top-settings-bar .metadata-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* Add gap between section and selectors */
+  border-left: 1px solid rgba(78, 110, 242, 0.2);
+  padding-left: 1.5rem;
+}
+
+#top-settings-bar .metadata-grid {
+  display: flex; /* Use flex instead of grid for horizontal layout */
+  gap: 1.2rem;
+}
+
+#top-settings-bar .metadata-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none; /* Remove background */
+  padding: 0;
+}
+
+#top-settings-bar .metadata-label {
+  font-size: 0.8rem;
+  color: #a0a0a0;
+  margin-bottom: 0;
+}
+
+#top-settings-bar .metadata-value {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #e0e0e0;
 } 

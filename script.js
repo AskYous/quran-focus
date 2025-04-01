@@ -131,6 +131,10 @@ let currentAyahNumber = 1;
 let audioControlsTimeout;
 let isUserInteractingWithAudio = false;
 
+// Variables for settings bar visibility
+let settingsBarTimeout;
+let isUserInteractingWithSettings = false;
+
 // Add a cache to store preloaded verses
 const verseCache = new Map();
 let nextVersePreloader = null;
@@ -380,6 +384,23 @@ function showAudioControls(resetTimeout = true) {
         audioContainer.classList.remove('visible');
       }
     }, 2500);
+  }
+}
+
+// Function to show/hide the top settings bar
+function showSettingsBar(resetTimeout = true) {
+  const settingsBar = document.getElementById('top-settings-bar');
+  if (!settingsBar) return;
+
+  settingsBar.classList.add('visible');
+
+  if (resetTimeout) {
+    clearTimeout(settingsBarTimeout);
+    settingsBarTimeout = setTimeout(() => {
+      if (!isUserInteractingWithSettings) {
+        settingsBar.classList.remove('visible');
+      }
+    }, 3000); // Slightly longer timeout for settings
   }
 }
 
@@ -915,41 +936,44 @@ function initCustomAudioPlayer() {
   let mouseMoveTimer;
   document.addEventListener('mousemove', function () {
     clearTimeout(mouseMoveTimer);
-    mouseMoveTimer = setTimeout(showControls, 50);
+    mouseMoveTimer = setTimeout(showAllControls, 50); // Renamed function
   });
-  document.addEventListener('click', () => showControls());
-  document.addEventListener('touchstart', () => showControls());
+  document.addEventListener('click', () => showAllControls()); // Use renamed function
+  document.addEventListener('touchstart', () => showAllControls()); // Use renamed function
 
-  // Handle controls visibility when hovering
+  // Handle audio controls visibility when hovering
   if (audioContainer) {
     audioContainer.addEventListener('mouseenter', function () {
-      isUserInteracting = true;
-      showControls(false); // Don't reset timeout
+      isUserInteractingWithAudio = true;
+      showAudioControls(false); // Don't reset timeout
     });
 
     audioContainer.addEventListener('mouseleave', function () {
-      isUserInteracting = false;
-      resetHideTimeout();
+      isUserInteractingWithAudio = false;
+      resetAudioHideTimeout(); // Renamed function
     });
   }
 
-  function showControls(resetTimeout = true) {
-    if (audioContainer) {
-      audioContainer.classList.add('visible');
-      if (resetTimeout) resetHideTimeout();
-    }
+  // Combined function to show all controls
+  function showAllControls(resetTimeout = true) {
+    showAudioControls(resetTimeout);
+    showSettingsBar(resetTimeout);
   }
 
-  function resetHideTimeout(delay = 2500) {
-    clearTimeout(hideControlsTimeout);
+  // Renamed function for clarity
+  function resetAudioHideTimeout(delay = 2500) {
+    clearTimeout(audioControlsTimeout);
     if (audioContainer) {
-      hideControlsTimeout = setTimeout(function () {
-        if (!isUserInteracting) {
+      audioControlsTimeout = setTimeout(function () {
+        if (!isUserInteractingWithAudio) {
           audioContainer.classList.remove('visible');
         }
       }, delay);
     }
   }
+
+  // Initial hide for audio controls
+  resetAudioHideTimeout(3000);
 }
 
 // SETUP EVENT LISTENERS
@@ -966,29 +990,22 @@ function setupEventListeners() {
     ayahSelect.addEventListener('change', handleAyahChange);
   }
 
-  // Settings panel toggle
-  const settingsToggle = document.getElementById('settings-toggle');
-  const settingsPanel = document.getElementById('settings-panel');
-  if (settingsToggle instanceof HTMLElement && settingsPanel instanceof HTMLElement) { // Check both are HTMLElements
-    settingsToggle.addEventListener('click', (event) => {
-      if (event.target instanceof Node && settingsPanel.contains(event.target)) {
-        return;
-      }
-      settingsPanel.classList.toggle('hidden');
-      settingsPanel.classList.toggle('visible');
-    });
-
-    document.addEventListener('click', (event) => {
-      const target = event.target;
-      if (target instanceof Node && !settingsPanel.contains(target) && target !== settingsToggle && !settingsToggle.contains(target)) {
-        settingsPanel.classList.add('hidden');
-        settingsPanel.classList.remove('visible');
-      }
-    });
-  }
-
   // Mouse movement effects
   document.addEventListener('mousemove', handleMouseMove);
+
+  // Handle settings bar visibility when hovering
+  const settingsBar = document.getElementById('top-settings-bar');
+  if (settingsBar) {
+    settingsBar.addEventListener('mouseenter', function () {
+      isUserInteractingWithSettings = true;
+      showSettingsBar(false); // Don't reset timeout
+    });
+
+    settingsBar.addEventListener('mouseleave', function () {
+      isUserInteractingWithSettings = false;
+      resetSettingsBarHideTimeout(); // Call the new reset function
+    });
+  }
 }
 
 // INITIALIZATION 
@@ -1021,6 +1038,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Set up core functionality
   setupEventListeners();
   initCustomAudioPlayer();
+  resetSettingsBarHideTimeout(3500); // Initial hide for settings bar
 
   // Populate dropdowns with data
   setTimeout(() => {
@@ -1144,4 +1162,17 @@ function initializeApp() {
 
   // Set up a periodic cache cleanup
   setInterval(limitCacheSize, 60000); // Check every minute
+}
+
+// Function to reset settings bar hide timeout (similar to audio)
+function resetSettingsBarHideTimeout(delay = 3000) {
+  clearTimeout(settingsBarTimeout);
+  const settingsBar = document.getElementById('top-settings-bar');
+  if (settingsBar) {
+    settingsBarTimeout = setTimeout(function () {
+      if (!isUserInteractingWithSettings) {
+        settingsBar.classList.remove('visible');
+      }
+    }, delay);
+  }
 } 
