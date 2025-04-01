@@ -135,6 +135,9 @@ let isUserInteractingWithAudio = false;
 let settingsBarTimeout;
 let isUserInteractingWithSettings = false;
 
+// Add a state variable to track playback status before navigation
+let wasPlayingBeforeNavigation = false;
+
 // Add a cache to store preloaded verses
 const verseCache = new Map();
 let nextVersePreloader = null;
@@ -542,6 +545,7 @@ function togglePlayPause() {
     } else {
       audioPlayer.pause();
       updatePlayPauseButton(true);
+      wasPlayingBeforeNavigation = false; // Set state on pause
     }
   }
 }
@@ -565,6 +569,7 @@ function playAudio() {
     .then(() => {
       console.log('Audio playback started successfully');
       updatePlayPauseButton(false);
+      wasPlayingBeforeNavigation = true; // Set state on successful play
     })
     .catch(error => {
       console.error('Error playing audio:', error);
@@ -662,7 +667,7 @@ function navigate(direction) {
         if (updatedAyahSelect instanceof HTMLSelectElement) {
           updatedAyahSelect.selectedIndex = updatedAyahSelect.options.length - 1;
           updatedAyahSelect.dispatchEvent(new Event('change'));
-          setTimeout(() => playAudio(), 500);
+          // setTimeout(() => playAudio(), 500); // REMOVED - handleAyahChange will manage playback
         }
       }, 300);
       return;
@@ -673,7 +678,7 @@ function navigate(direction) {
   if (currentAyah !== -1) {
     ayahSelect.value = String(currentAyah);
     ayahSelect.dispatchEvent(new Event('change'));
-    setTimeout(() => playAudio(), 500);
+    // setTimeout(() => playAudio(), 500); // REMOVED - handleAyahChange will manage playback
   }
 }
 
@@ -820,8 +825,14 @@ function loadAndDisplayAyah(globalAyahNumber) {
     })
     .catch(error => console.error("Error fetching verse:", error));
 
-  // Load the audio for this ayah
-  return playAyahAudio(currentAyahNumber);
+  // Load the audio, then decide whether to play based on the state
+  playAyahAudio(currentAyahNumber).then(() => {
+    if (wasPlayingBeforeNavigation) {
+      playAudio(); // Play only if it was playing before
+    } else {
+      updatePlayPauseButton(true); // Ensure button is in play state
+    }
+  });
 }
 
 // Add a function to create the smooth transition effect
@@ -1097,7 +1108,15 @@ function handleAyahChange() {
       }
     })
     .catch(error => console.error("Error fetching verse:", error));
-  playAyahAudio(globalAyahNumber);
+
+  // Load the audio, then decide whether to play based on the state
+  playAyahAudio(globalAyahNumber).then(() => {
+    if (wasPlayingBeforeNavigation) {
+      playAudio(); // Play only if it was playing before
+    } else {
+      updatePlayPauseButton(true); // Ensure button is in play state
+    }
+  });
 }
 
 function handleMouseMove(e) {
@@ -1144,6 +1163,8 @@ function initCustomAudioPlayer() {
     audioElement.addEventListener('ended', () => {
       console.log('Audio ended, navigating to next ayah');
       updatePlayPauseButton(true);
+      // Since it ended, it *was* playing.
+      wasPlayingBeforeNavigation = true; // Ensure state is true before navigating
       navigate('next');
     });
   } else {
@@ -1356,8 +1377,12 @@ async function loadVerse(surahNumber, ayahNumber) {
   if (verseData && !verseData.error) {
     // Preload and prepare local audio player
     await playAyahAudio(globalAyahNumber);
-    // Attempt to autoplay locally (browser might block this)
-    playAudio();
+    // Attempt to autoplay locally only if it was playing before
+    if (wasPlayingBeforeNavigation) {
+      playAudio();
+    } else {
+      updatePlayPauseButton(true); // Ensure button shows play
+    }
   }
   // Preload the *next* verse regardless of play success
   preloadNextVerse(surahNumber, ayahNumber);
