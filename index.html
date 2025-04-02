@@ -74,8 +74,12 @@
                 </svg>
             </button>
 
-            <!-- Chromecast Button -->
-            <google-cast-launcher id="cast-button" class="settings-button"></google-cast-launcher>
+            <!-- Show Onboarding Guide Button -->
+            <button id="show-onboarding" class="settings-button" title="Show Guide">
+                <svg viewBox="0 0 24 24" fill="currentColor" >
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                </svg>
+            </button>
 
         </div>
     </div>
@@ -104,7 +108,7 @@
     <!-- <div class="verse-transition-pulse"></div> -->
 
     <!-- Chromecast SDK Moved to end of body -->
-    <script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+    <!-- <script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script> -->
 
     <script>
       // Font loading optimization
@@ -120,5 +124,47 @@
         }).catch(err => console.error("Font loading error:", err));
       }
     </script>
+
+    <!-- Onboarding Modal -->
+    <div id="onboarding-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div id="onboarding-step-1" class="onboarding-step">
+                <h2>Welcome to Quran Focus!</h2>
+                <p>This app helps you focus on the Quran, one Ayah at a time.</p>
+                <p>Select a Surah and Ayah from the top bar to begin.</p>
+                <button class="onboarding-button next" data-next-step="onboarding-step-2">Next</button>
+                <button class="onboarding-button skip">Skip</button>
+            </div>
+            <div id="onboarding-step-2" class="onboarding-step hidden">
+                <h2>Listen and Reflect</h2>
+                <p>Tap the screen once to play the audio recitation of the current Ayah.</p>
+                <p>Tap again to pause.</p>
+                <button class="onboarding-button prev" data-prev-step="onboarding-step-1">Previous</button>
+                <button class="onboarding-button next" data-next-step="onboarding-step-3">Next</button>
+                 <button class="onboarding-button skip">Skip</button>
+            </div>
+            <div id="onboarding-step-3" class="onboarding-step hidden">
+                <h2>Navigate Ayahs</h2>
+                <p>Swipe left to go to the next Ayah.</p>
+                <p>Swipe right to go to the previous Ayah.</p>
+                <button class="onboarding-button prev" data-prev-step="onboarding-step-2">Previous</button>
+                <button class="onboarding-button next" data-next-step="onboarding-step-4">Next</button>
+                <button class="onboarding-button skip">Skip</button>
+            </div>
+            <div id="onboarding-step-4" class="onboarding-step hidden">
+                <h2>Access Settings</h2>
+                <p>Double-tap anywhere on the screen to quickly show or hide the top settings bar.</p>
+                <button class="onboarding-button prev" data-prev-step="onboarding-step-3">Previous</button>
+                <button class="onboarding-button next" data-next-step="onboarding-step-5">Next</button>
+                <button class="onboarding-button skip">Skip</button>
+            </div>
+            <div id="onboarding-step-5" class="onboarding-step hidden">
+                <h2>Control Your Experience</h2>
+                <p>Use the top bar to change Surah/Ayah, view Ayah info (Juz, Page, Hizb), toggle fullscreen, or re-open this guide.</p>
+                <button class="onboarding-button prev" data-prev-step="onboarding-step-4">Previous</button>
+                <button class="onboarding-button finish">Finish</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html> 

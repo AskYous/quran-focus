@@ -7,4 +7,4 @@ This is an HTML, CSS, and JS application. It doesn't use any framework. It's a c
 
 Make sure the code is writtin in a way that is scalable and maintable.
 
-As you update the code, please make sure that the [README.md](mdc:README.md) and the [rules.mdc](mdc:.cursor/rules/rules.mdc) files stay updated.
+As you update the code, please make sure that the [README.md](mdc:README.md) and the [rules.mdc](mdc:.cursor/rules/rules.mdc), and the user onboarding experience stay updated.

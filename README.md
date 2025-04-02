@@ -8,11 +8,12 @@ A beautiful, minimalist web application for focused Quran reading and listening.
 - **Ambient Particles**: Beautiful particle animations in the background
 - **Audio Recitation**: High-quality audio playback of Quranic verses
 - **Progressive Web App (PWA)**: Installable on any device for offline access
-- **Chromecast Support**: Cast verses to your TV or other devices
+// - **Chromecast Support**: Cast verses to your TV or other devices
 - **Responsive Design**: Works seamlessly across all devices
 - **Fullscreen Mode**: Immersive viewing experience
 - **Surah & Ayah Selection**: Easy navigation through the entire Quran
 - **Beautiful Typography**: Optimized Arabic and English fonts
+- **Onboarding Guide**: A quick introduction for first-time users.
 
 ## 🚀 Live Demo
 
@@ -22,7 +23,7 @@ Visit the live version of the website at: [askyous.github.io/quran-focus](https:
 
 - Built with vanilla JavaScript, HTML5, and CSS3
 - Uses Particles.js for interactive background effects
-- Implements the Google Cast SDK for Chromecast functionality
+// - Implements the Google Cast SDK for Chromecast functionality
 - Optimized font loading for Arabic and English text
 - Service Worker implementation for offline functionality
 - Responsive design with mobile-first approach

@@ -2,11 +2,11 @@
 // Core Imports from Modules
 import { fetchQuranVerse } from './modules/api.js';
 import { playAudio, playAyahAudio, togglePlayPause, updatePlayPauseButton } from './modules/audio.js';
-import { castMedia, initializeGlobalCastApiCallback } from './modules/cast.js';
+// import { castMedia, initializeGlobalCastApiCallback } from './modules/cast.js';
 import { initializeApp } from './modules/init.js';
 import { limitCacheSize, preloadNextVerse } from './modules/navigation.js';
 import {
-  castSession,
+  // castSession,
   currentAyahNumber,
   nextVersePreloader,
   setCurrentAyahNumber,
@@ -19,7 +19,7 @@ import { calculateGlobalAyahNumber, calculateSurahAndAyah } from './modules/util
 
 // Initialize the global callback for the Cast SDK
 // @ts-ignore - This function is globally defined by the Cast SDK loader script
-initializeGlobalCastApiCallback();
+// initializeGlobalCastApiCallback();
 
 /**
  * Core function to load and display a specific verse.
@@ -77,42 +77,42 @@ export async function loadVerse(surahNumber, ayahNumber) {
   const cacheKey = `${sNum}:${aNum}`;
   let verseData;
 
-  // Check for active Cast session
-  // @ts-ignore - Cast types are external
-  if (castSession && castSession.getSessionState() === cast.framework.SessionState.SESSION_STARTED) {
-    console.log("[Cast] Session active. Loading media via castMedia.");
-    if (verseCache.has(cacheKey)) {
-      verseData = verseCache.get(cacheKey);
-    } else {
-      try {
-        verseData = await fetchQuranVerse(sNum, aNum);
-        if (!verseData.error) {
-          verseCache.set(cacheKey, verseData);
-          limitCacheSize();
-        } else {
-          console.error("[Cast] Error fetching verse data before casting:", verseData.error);
-        }
-      } catch (fetchError) {
-        console.error("[Cast] Network error fetching verse data before casting:", fetchError);
-        verseData = { error: "Network error fetching data" };
-      }
-    }
+  // Check for active Cast session - REMOVED
+  // // @ts-ignore - Cast types are external
+  // if (castSession && castSession.getSessionState() === cast.framework.SessionState.SESSION_STARTED) {
+  //   console.log(\"[Cast] Session active. Loading media via castMedia.\");
+  //   if (verseCache.has(cacheKey)) {
+  //     verseData = verseCache.get(cacheKey);
+  //   } else {
+  //     try {
+  //       verseData = await fetchQuranVerse(sNum, aNum);
+  //       if (!verseData.error) {
+  //         verseCache.set(cacheKey, verseData);
+  //         limitCacheSize();
+  //       } else {
+  //         console.error(\"[Cast] Error fetching verse data before casting:\", verseData.error);
+  //       }
+  //     } catch (fetchError) {
+  //       console.error(\"[Cast] Network error fetching verse data before casting:\", fetchError);
+  //       verseData = { error: \"Network error fetching data\" };
+  //     }
+  //   }
 
-    if (verseData && !verseData.error) {
-      await displayVerse(sNum, aNum, verseData);
-      await castMedia(globalAyahNumber);
-    } else {
-      // Display error locally
-      const arabicTextElement = document.getElementById('arabic-text');
-      const translationTextElement = document.getElementById('translation-text');
-      if (arabicTextElement instanceof HTMLElement) arabicTextElement.textContent = 'Error loading verse.';
-      if (translationTextElement instanceof HTMLElement) translationTextElement.textContent = verseData?.error || 'Unknown error';
-    }
-    return;
-  }
+  //   if (verseData && !verseData.error) {
+  //     await displayVerse(sNum, aNum, verseData);
+  //     await castMedia(globalAyahNumber);
+  //   } else {
+  //     // Display error locally
+  //     const arabicTextElement = document.getElementById(\'arabic-text\');
+  //     const translationTextElement = document.getElementById(\'translation-text\');
+  //     if (arabicTextElement instanceof HTMLElement) arabicTextElement.textContent = \'Error loading verse.\';
+  //     if (translationTextElement instanceof HTMLElement) translationTextElement.textContent = verseData?.error || \'Unknown error\';
+  //   }
+  //   return;
+  // }
 
   // --- Local Playback Logic ---
-  console.log("[Local] No active cast session. Loading media locally.");
+  console.log("[Local] Loading media locally."); // Updated log message
 
   // Try cache
   if (verseCache.has(cacheKey)) {
@@ -211,6 +211,7 @@ async function goToNextAyah() {
 // MAIN INITIALIZATION LISTENER
 document.addEventListener('DOMContentLoaded', () => {
   initializeApp(); // Call the main initialization function from the module
+  initializeOnboarding(); // Initialize the onboarding experience
 
   // --- Swipe Event Listeners ---
   // Attach listeners to the body for full-screen swipe detection
@@ -281,6 +282,95 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+/**
+ * Displays the onboarding modal, resetting it to the first step.
+ */
+function showOnboardingModal() {
+  const modalOverlay = document.getElementById('onboarding-modal');
+  if (!modalOverlay) {
+    console.error("Onboarding modal element not found.");
+    return;
+  }
+
+  const steps = modalOverlay.querySelectorAll('.onboarding-step');
+
+  // Reset to the first step
+  steps.forEach((step, index) => {
+    if (index === 0) {
+      step.classList.remove('hidden');
+    } else {
+      step.classList.add('hidden');
+    }
+  });
+
+  modalOverlay.classList.remove('hidden');
+}
+
+/**
+ * Initializes the onboarding modal logic.
+ * Checks if onboarding has been completed using localStorage.
+ * If not, displays the modal and sets up button event listeners.
+ * Also sets up the listener for the 'Show Guide' button.
+ */
+function initializeOnboarding() {
+  const modalOverlay = document.getElementById('onboarding-modal');
+  const onboardingComplete = localStorage.getItem('onboardingComplete');
+  const showGuideButton = document.getElementById('show-onboarding'); // Get the new button
+
+  if (!modalOverlay) {
+    console.error("Onboarding modal element not found.");
+    return;
+  }
+
+  const steps = modalOverlay.querySelectorAll('.onboarding-step');
+  const buttons = modalOverlay.querySelectorAll('.onboarding-button');
+
+  const closeOnboarding = () => {
+    modalOverlay.classList.add('hidden');
+    // Only set completion flag when the initial onboarding is finished/skipped
+    if (localStorage.getItem('onboardingComplete') !== 'true') {
+      localStorage.setItem('onboardingComplete', 'true');
+    }
+  };
+
+  // Setup modal button listeners (Next, Prev, Skip, Finish)
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      if (button.classList.contains('next')) {
+        const nextStepId = button.getAttribute('data-next-step');
+        steps.forEach(step => step.classList.add('hidden'));
+        const nextStep = document.getElementById(nextStepId);
+        if (nextStep) {
+          nextStep.classList.remove('hidden');
+        }
+      } else if (button.classList.contains('prev')) {
+        const prevStepId = button.getAttribute('data-prev-step');
+        steps.forEach(step => step.classList.add('hidden'));
+        const prevStep = document.getElementById(prevStepId);
+        if (prevStep) {
+          prevStep.classList.remove('hidden');
+        }
+      } else if (button.classList.contains('skip') || button.classList.contains('finish')) {
+        closeOnboarding();
+      }
+    });
+  });
+
+  // Show onboarding automatically only if it hasn't been completed
+  if (onboardingComplete !== 'true') {
+    showOnboardingModal(); // Use the new function to show the modal
+  }
+
+  // Add listener for the 'Show Guide' button
+  if (showGuideButton) {
+    showGuideButton.addEventListener('click', () => {
+      showOnboardingModal(); // Show the modal when the button is clicked
+    });
+  } else {
+    console.error("Show Onboarding button not found.");
+  }
+}
 
 // SERVICE WORKER REGISTRATION
 if ('serviceWorker' in navigator) {

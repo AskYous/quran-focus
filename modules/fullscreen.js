@@ -7,11 +7,11 @@ export function setupFullscreenToggle() {
   const fullscreenIcon = fullscreenButton?.querySelector('.fullscreen-icon');
   const exitFullscreenIcon = fullscreenButton?.querySelector('.exit-fullscreen-icon');
 
-  // Ensure button and icons exist and are HTMLElements
+  // Ensure button and icons exist and are HTMLElements/Elements
   if (!(fullscreenButton instanceof HTMLElement) ||
-    !(fullscreenIcon instanceof HTMLElement) ||
-    !(exitFullscreenIcon instanceof HTMLElement)) {
-    console.warn("Fullscreen button or icons not found or not HTMLElements.");
+    !(fullscreenIcon instanceof Element) || // Use Element for SVG
+    !(exitFullscreenIcon instanceof Element)) { // Use Element for SVG
+    console.warn("Fullscreen button or icons not found or not Elements.");
     if (fullscreenButton instanceof HTMLElement) {
       fullscreenButton.style.display = 'none'; // Hide button if elements are missing
     }
@@ -45,13 +45,14 @@ export function setupFullscreenToggle() {
       // @ts-ignore
       doc.msFullscreenElement;
 
-    // Re-check elements are HTMLElement before accessing style/title
+    // Re-check elements are HTMLElement/Element before accessing style/title
     if (!(fullscreenButton instanceof HTMLElement) ||
-      !(fullscreenIcon instanceof HTMLElement) ||
-      !(exitFullscreenIcon instanceof HTMLElement)) {
+      !(fullscreenIcon instanceof Element) || // Use Element for SVG
+      !(exitFullscreenIcon instanceof Element)) { // Use Element for SVG
       return; // Should not happen if initial checks passed
     }
 
+    // Accessing .style on Element (could be HTMLElement or SVGElement)
     if (fullscreenElement) {
       fullscreenIcon.style.display = 'none';
       exitFullscreenIcon.style.display = 'block';
