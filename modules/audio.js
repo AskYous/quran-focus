@@ -1,6 +1,23 @@
 import { loadAndDisplayAyah } from '../script.js'; // Main script handles loading logic
-import { audioControlsTimeout, castSession, currentAyahNumber, isUserInteractingWithAudio, setAudioControlsTimeout, setWasPlayingBeforeNavigation } from './state.js';
+import { castSession, currentAyahNumber, setWasPlayingBeforeNavigation } from './state.js';
 import { calculateSurahAndAyah, padNumber } from './utils.js';
+
+/**
+ * Helper function to apply the visual feedback animation.
+ */
+function triggerPlayFeedbackAnimation() {
+  const arabicText = document.getElementById('arabic-text');
+  const translationText = document.getElementById('translation-text');
+
+  if (arabicText) {
+    arabicText.classList.add('play-feedback-trigger');
+    setTimeout(() => arabicText.classList.remove('play-feedback-trigger'), 600); // Match animation duration
+  }
+  if (translationText) {
+    translationText.classList.add('play-feedback-trigger');
+    setTimeout(() => translationText.classList.remove('play-feedback-trigger'), 600);
+  }
+}
 
 /**
  * Updates the play/pause button UI.
@@ -93,21 +110,18 @@ export function togglePlayPause() {
       // Check if src is missing, points to the page itself (initial state), or is empty
       if (!audioPlayer.src || audioPlayer.src === window.location.href || audioPlayer.src === '') {
         console.log("No valid audio source, attempting to load current ayah first.");
-        // Ensure loadAndDisplayAyah is called correctly
-        // It now returns a promise, we should ideally wait for it,
-        // but for simplicity, we trigger playAudio after a short delay or rely on loadAndDisplayAyah's internal logic.
         loadAndDisplayAyah(currentAyahNumber).then(() => {
-          // playAudio might be called internally by loadAndDisplayAyah if wasPlayingBeforeNavigation is true
-          // If not, we might need to call it here explicitly if we always want play on first click.
-          // For now, let's assume loadAndDisplayAyah handles the play state correctly.
+          // Playback might be handled by loadVerse, but trigger feedback on intent
+          triggerPlayFeedbackAnimation();
         }).catch(err => console.error("Error loading ayah on toggle play:", err));
       } else {
-        playAudio(); // Play existing source
+        playAudio(); // Play existing source (playAudio will trigger feedback)
       }
     } else {
       audioPlayer.pause();
       updatePlayPauseButton(true);
       setWasPlayingBeforeNavigation(false);
+      triggerPlayFeedbackAnimation(); // Feedback on pause
     }
   }
 }
@@ -125,32 +139,29 @@ export function playAudio() {
 
   if (!audioPlayer.src || audioPlayer.src === window.location.href) {
     console.log('No valid audio source to play');
-    // Maybe load the current ayah here? Or rely on togglePlayPause logic.
-    // loadAndDisplayAyah(currentAyahNumber); // Example: Trigger load if no source
     return;
   }
 
   console.log('Attempting to play audio:', audioPlayer.src);
 
-  // Ensure the player is ready before playing
-  if (audioPlayer.readyState >= 3) { // HAVE_FUTURE_DATA or HAVE_ENOUGH_DATA
+  if (audioPlayer.readyState >= 3) {
     audioPlayer.play()
       .then(() => {
         console.log('Audio playback started successfully');
         updatePlayPauseButton(false);
         setWasPlayingBeforeNavigation(true);
+        triggerPlayFeedbackAnimation(); // Feedback on play
       })
       .catch(error => {
         console.error('Error playing audio:', error);
         if (error.name === 'NotAllowedError') {
           console.log('Playback prevented, possibly requires user interaction.');
         }
-        updatePlayPauseButton(true); // Reset button state on error
+        updatePlayPauseButton(true);
         setWasPlayingBeforeNavigation(false);
       });
   } else {
     console.log('Audio not ready, waiting for canplay event...');
-    // Wait for the audio to be ready
     audioPlayer.addEventListener('canplay', () => {
       console.log('Audio is now ready, playing...');
       audioPlayer.play()
@@ -158,26 +169,23 @@ export function playAudio() {
           console.log('Audio playback started successfully after wait');
           updatePlayPauseButton(false);
           setWasPlayingBeforeNavigation(true);
+          triggerPlayFeedbackAnimation(); // Feedback on play
         })
         .catch(error => {
           console.error('Error playing audio after wait:', error);
           updatePlayPauseButton(true);
           setWasPlayingBeforeNavigation(false);
         });
-    }, { once: true }); // Ensure listener is removed after firing
+    }, { once: true });
 
-    // Add a fallback timeout in case 'canplay' never fires
     setTimeout(() => {
       if (audioPlayer.paused) {
         console.warn('Audio never reached canplay state, play attempt timed out.');
-        updatePlayPauseButton(true); // Ensure button is in play state
+        updatePlayPauseButton(true);
       }
-    }, 7000); // 7 seconds timeout
+    }, 7000);
   }
-
-  showAudioControls();
 }
-
 
 /**
  * Preloads audio for a given global Ayah number.
@@ -203,44 +211,4 @@ export function preloadAudio(ayahNumber) {
     console.error(`Error preloading audio for ayah: ${ayahNumber}`);
     tempAudio.onerror = null; // Clean up listener
   };
-}
-
-/**
- * Shows the audio controls and sets a timeout to hide them.
- * @param {boolean} [resetTimeout=true] Whether to reset the hide timeout.
- */
-export function showAudioControls(resetTimeout = true) {
-  const audioContainer = document.querySelector('.audio-container');
-  if (!audioContainer) return;
-
-  audioContainer.classList.add('visible');
-
-  if (resetTimeout) {
-    clearTimeout(audioControlsTimeout);
-    const timeout = setTimeout(() => {
-      // Check isUserInteractingWithAudio flag from state
-      if (!isUserInteractingWithAudio && audioContainer) {
-        audioContainer.classList.remove('visible');
-      }
-    }, 2500);
-    setAudioControlsTimeout(timeout); // Store timeout ID in state
-  }
-}
-
-/**
- * Resets the timeout for hiding the audio controls.
- * @param {number} [delay=2500] The delay before hiding.
- */
-export function resetAudioHideTimeout(delay = 2500) {
-  clearTimeout(audioControlsTimeout);
-  const audioContainer = document.querySelector('.audio-container');
-  if (audioContainer) {
-    const timeout = setTimeout(function () {
-      // Check isUserInteractingWithAudio flag from state
-      if (!isUserInteractingWithAudio) {
-        audioContainer.classList.remove('visible');
-      }
-    }, delay);
-    setAudioControlsTimeout(timeout); // Store timeout ID in state
-  }
 }

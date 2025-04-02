@@ -23,7 +23,7 @@
     <div id="particles-js"></div>
 
     <!-- Top Settings Bar -->
-    <div id="top-settings-bar" class="top-settings-bar hidden"> <!-- Start hidden -->
+    <div id="top-settings-bar" class="top-settings-bar"> <!-- Removed hidden class, visibility handled by CSS/JS -->
         <div class="settings-content">
             <div class="form-group">
                 <label for="surah-select">Surah</label>
@@ -81,29 +81,7 @@
     </div>
 
     <!-- Audio player for Ayah recitation -->
-    <div class="audio-container">
-        <div id="custom-audio-player" class="custom-audio-player">
-            <audio id="ayah-audio-player" preload="metadata"></audio>
-            <button id="prev-ayah-btn" class="nav-btn prev-btn">
-                <svg viewBox="0 0 24 24">
-                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-                </svg>
-            </button>
-            <button id="play-pause-btn" class="play-pause-btn">
-                <svg class="play-icon" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z"/>
-                </svg>
-                <svg class="pause-icon" viewBox="0 0 24 24">
-                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-                </svg>
-            </button>
-            <button id="next-ayah-btn" class="nav-btn next-btn">
-                <svg viewBox="0 0 24 24">
-                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
-                </svg>
-            </button>
-        </div>
-    </div>
+    <!-- Removed audio-container div -->
     
     <!-- Quran verse display -->
     <div class="ayah-display">
@@ -115,6 +93,9 @@
     <!-- Ambient glow effects -->
     <div class="ambient-glow glow-1"></div>
     <div class="ambient-glow glow-2"></div>
+
+    <!-- Hidden Audio Player (Controlled via taps) -->
+    <audio id="ayah-audio-player" preload="metadata" style="display: none;"></audio>
 
     <!-- External JavaScript -->
     <script type="module" src="script.js"></script>

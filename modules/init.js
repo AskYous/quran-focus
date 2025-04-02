@@ -1,5 +1,5 @@
 import { loadVerse } from '../script.js'; // Needed for setDefaultSelections
-import { handleSurahChange, initCustomAudioPlayer, setupEventListeners } from './events.js';
+import { handleSurahChange, setupEventListeners } from './events.js';
 import { setupFullscreenToggle } from './fullscreen.js';
 import { initializeCacheCleanup } from './navigation.js';
 import { quranData } from './quranData.js';
@@ -71,32 +71,26 @@ function setDefaultSelections() {
  * Preloads essential fonts.
  */
 function preloadFonts() {
+  const docElement = document.documentElement;
+  if (!docElement) return; // Guard against documentElement being null
+
   if ('fonts' in document) {
     Promise.all([
             /** @type {Promise<void>} */(new Promise(resolve => document.fonts.load('1em "Scheherazade New"').then(() => resolve(undefined), () => resolve(undefined)))),
             /** @type {Promise<void>} */(new Promise(resolve => document.fonts.load('1em "Amiri"').then(() => resolve(undefined), () => resolve(undefined)))),
             /** @type {Promise<void>} */(new Promise(resolve => document.fonts.load('1em "Noto Sans Arabic"').then(() => resolve(undefined), () => resolve(undefined))))
     ]).then(() => {
-      // Check documentElement exists before adding class
-      if (document.documentElement) {
-        document.documentElement.classList.add('fonts-loaded');
-      }
+      docElement.classList.add('fonts-loaded');
       console.log("Essential fonts preloaded.");
     }).catch(error => {
       console.warn("Font preloading failed:", error);
       // Add class anyway to prevent potential style issues if fonts load later
-      // Check documentElement exists before adding class
-      if (document.documentElement) {
-        document.documentElement.classList.add('fonts-loaded');
-      }
+      docElement.classList.add('fonts-loaded');
     });
   } else {
     console.log("Font Loading API not supported, skipping font preload.");
     // Add class immediately if API is not supported
-    // Check documentElement exists before adding class
-    if (document.documentElement) {
-      document.documentElement.classList.add('fonts-loaded');
-    }
+    docElement.classList.add('fonts-loaded');
   }
 }
 
@@ -119,7 +113,6 @@ export function initializeApp() {
 
   // Set up core UI and event handling
   setupEventListeners();
-  initCustomAudioPlayer();
   setupFullscreenToggle();
   initializeCacheCleanup(); // Start cache cleanup interval
   resetSettingsBarHideTimeout(3500); // Initial hide for settings bar

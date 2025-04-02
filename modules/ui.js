@@ -249,17 +249,13 @@ export function showSettingsBar(resetTimeout = true) {
   const settingsBar = document.getElementById('top-settings-bar');
   if (!settingsBar) return;
 
-  settingsBar.classList.add('visible');
+  settingsBar.classList.add('visible'); // Ensure it's visible
 
   if (resetTimeout) {
+    resetSettingsBarHideTimeout(); // Use the updated reset function
+  } else {
+    // If not resetting, clear any existing timeout so hover takes precedence
     clearTimeout(settingsBarTimeout);
-    const timeout = setTimeout(() => {
-      // Use isUserInteractingWithSettings flag from state
-      if (!isUserInteractingWithSettings && settingsBar) {
-        settingsBar.classList.remove('visible');
-      }
-    }, 3000);
-    setSettingsBarTimeout(timeout); // Store timeout ID in state
   }
 }
 
@@ -270,13 +266,30 @@ export function showSettingsBar(resetTimeout = true) {
 export function resetSettingsBarHideTimeout(delay = 3000) {
   clearTimeout(settingsBarTimeout);
   const settingsBar = document.getElementById('top-settings-bar');
-  if (settingsBar) {
-    const timeout = setTimeout(function () {
-      // Use isUserInteractingWithSettings flag from state
-      if (!isUserInteractingWithSettings) {
-        settingsBar.classList.remove('visible');
-      }
-    }, delay);
-    setSettingsBarTimeout(timeout); // Store timeout ID in state
+
+  const timeout = setTimeout(() => {
+    // Check isUserInteractingWithSettings flag from state
+    if (!isUserInteractingWithSettings && settingsBar) {
+      settingsBar.classList.remove('visible'); // Remove .visible to hide
+    }
+  }, delay);
+  setSettingsBarTimeout(timeout); // Store timeout ID in state
+}
+
+/**
+ * Toggles the visibility of the settings bar.
+ */
+export function toggleSettingsBar() {
+  const settingsBar = document.getElementById('top-settings-bar');
+  if (!settingsBar) return;
+
+  if (settingsBar.classList.contains('visible')) {
+    // Currently visible, so hide it
+    settingsBar.classList.remove('visible');
+    clearTimeout(settingsBarTimeout); // Clear any existing hide timer
+  } else {
+    // Currently hidden, so show it
+    settingsBar.classList.add('visible');
+    resetSettingsBarHideTimeout(); // Start the timer to hide it again
   }
 }

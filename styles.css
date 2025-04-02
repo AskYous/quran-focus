@@ -220,6 +220,7 @@ body {
   font-display: swap;
   z-index: 6;
   position: relative;
+  user-select: none; /* Prevent selection */
 }
 
 /* Translation text styling */
@@ -237,6 +238,7 @@ body {
   text-shadow: 
     0 0 5px rgba(255, 255, 255, 0.4),
     0 0 20px rgba(78, 110, 242, 0.3);
+  user-select: none; /* Prevent selection */
 }
 
 /* Verse meta information */
@@ -461,6 +463,7 @@ body {
     position: relative;
     z-index: 10;
     pointer-events: auto;
+    user-select: none; /* Prevent text selection on tap */
 }
 
 .arabic-text, .translation-text {
@@ -825,6 +828,7 @@ p, h1, h2, h3, h4, h5, h6, span, label {
 .arabic-text span,
 .translation-text span {
     pointer-events: auto;
+    user-select: none; /* Prevent selection on the inner spans */
 }
 
 /* Ayah reference display (e.g., 39:3) */
@@ -978,4 +982,37 @@ google-cast-launcher {
     --cast-button-size: 24px; /* Control size */
     vertical-align: middle; /* Align with other buttons */
     margin-left: 10px; /* Add some space */
+}
+
+/* Play/Pause Feedback Animation */
+@keyframes textGlowFeedback {
+  0% {
+    text-shadow: 
+      0 0 8px rgba(255, 255, 255, 0.5),
+      0 0 25px rgba(78, 110, 242, 0.4);
+  }
+  50% {
+    text-shadow: 
+      0 0 16px rgba(255, 255, 255, 0.8),
+      0 0 40px rgba(78, 110, 242, 0.7);
+  }
+  100% {
+    text-shadow: 
+      0 0 8px rgba(255, 255, 255, 0.5),
+      0 0 25px rgba(78, 110, 242, 0.4);
+  }
+}
+
+.play-feedback-glow .arabic-word,
+.play-feedback-glow .english-word {
+  /* Apply to individual words for better effect if needed, or apply to parent */
+}
+
+/* Apply animation directly to parent containers when feedback class is added */
+#arabic-text.play-feedback-trigger {
+  animation: textGlowFeedback 0.6s ease-out;
+}
+
+#translation-text.play-feedback-trigger {
+  animation: textGlowFeedback 0.6s ease-out;
 } 

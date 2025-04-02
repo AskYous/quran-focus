@@ -1,9 +1,9 @@
 import { loadVerse } from '../script.js'; // Needed for handleAyahChange
-import { resetAudioHideTimeout, showAudioControls, togglePlayPause, updatePlayPauseButton } from './audio.js';
+import { togglePlayPause, updatePlayPauseButton } from './audio.js'; // Removed showAudioControls, resetAudioHideTimeout
 import { navigate } from './navigation.js';
 import { quranData } from './quranData.js';
-import { setCurrentAyahNumber, setIsUserInteractingWithAudio, setIsUserInteractingWithSettings } from './state.js';
-import { populateAyahSelect, resetSettingsBarHideTimeout, showSettingsBar, updateGlowElements } from './ui.js';
+import { setCurrentAyahNumber, setIsUserInteractingWithSettings } from './state.js'; // Removed setIsUserInteractingWithAudio
+import { populateAyahSelect, resetSettingsBarHideTimeout, showSettingsBar, toggleSettingsBar, updateGlowElements } from './ui.js'; // Added toggleSettingsBar
 import { calculateGlobalAyahNumber, saveSelectionsToLocalStorage } from './utils.js';
 
 /**
@@ -115,64 +115,6 @@ export function handleMouseMove(e) {
 }
 
 /**
- * Initializes the custom audio player controls and events.
- */
-export function initCustomAudioPlayer() {
-  const audioElement = document.getElementById('ayah-audio-player');
-  const audioContainer = document.querySelector('.audio-container');
-  const playPauseBtn = document.getElementById('play-pause-btn');
-  const prevAyahBtn = document.getElementById('prev-ayah-btn');
-  const nextAyahBtn = document.getElementById('next-ayah-btn');
-
-  // Apply initial visibility state for audio controls
-  if (audioContainer) {
-    audioContainer.classList.add('visible');
-    resetAudioHideTimeout(3000); // Start timeout to hide initially
-  }
-
-  // Add event listeners to buttons
-  if (playPauseBtn) playPauseBtn.addEventListener('click', togglePlayPause);
-  if (prevAyahBtn) prevAyahBtn.addEventListener('click', () => navigate('prev'));
-  if (nextAyahBtn) nextAyahBtn.addEventListener('click', () => navigate('next'));
-
-  // Handle audio ending: navigate to next ayah
-  if (audioElement instanceof HTMLAudioElement) {
-    audioElement.addEventListener('ended', () => {
-      console.log('Audio ended, navigating to next ayah');
-      updatePlayPauseButton(true);
-      // Since it ended, it *was* playing. Trigger next verse load.
-      navigate('next');
-    });
-  } else {
-    console.warn("Audio element not found for 'ended' listener attachment.");
-  }
-
-  // Show controls on interaction
-  let mouseMoveTimer;
-  document.addEventListener('mousemove', () => {
-    clearTimeout(mouseMoveTimer);
-    // Use named function for clarity
-    mouseMoveTimer = setTimeout(() => showAllInteractiveControls(true), 50);
-  });
-  // Wrap the call in an arrow function to match listener signature
-  document.addEventListener('click', () => showAllInteractiveControls(true));
-  document.addEventListener('touchstart', () => showAllInteractiveControls(true));
-
-  // Handle audio controls visibility on hover
-  if (audioContainer instanceof HTMLElement) { // Ensure it's an HTMLElement
-    audioContainer.addEventListener('mouseenter', () => {
-      setIsUserInteractingWithAudio(true);
-      showAudioControls(false); // Show without resetting hide timeout
-    });
-    audioContainer.addEventListener('mouseleave', () => {
-      setIsUserInteractingWithAudio(false);
-      resetAudioHideTimeout(); // Start hide timeout when mouse leaves
-    });
-  }
-  console.log("Custom audio player initialized.");
-}
-
-/**
  * Sets up primary event listeners for the application.
  */
 export function setupEventListeners() {
@@ -185,23 +127,63 @@ export function setupEventListeners() {
   // Mouse movement for visual effects
   document.addEventListener('mousemove', handleMouseMove);
 
-  // Handle settings bar visibility on hover
+  // Handle settings bar visibility on hover/interaction
   const settingsBar = document.getElementById('top-settings-bar');
-  if (settingsBar instanceof HTMLElement) { // Ensure it's an HTMLElement
+  if (settingsBar instanceof HTMLElement) {
     settingsBar.addEventListener('mouseenter', () => {
       setIsUserInteractingWithSettings(true);
-      showSettingsBar(false); // Show without resetting hide timeout
+      showSettingsBar(false);
     });
     settingsBar.addEventListener('mouseleave', () => {
       setIsUserInteractingWithSettings(false);
-      resetSettingsBarHideTimeout(); // Start hide timeout when mouse leaves
+      resetSettingsBarHideTimeout();
     });
   }
-  console.log("Core event listeners set up.");
-}
 
-// Helper function to show both audio and settings controls on general interaction
-function showAllInteractiveControls(resetTimeout = true) {
-  showAudioControls(resetTimeout);
-  showSettingsBar(resetTimeout);
+  // Handle Tap and Double Tap
+  let lastTap = 0;
+  let tapTimeout;
+  const doubleTapDelay = 300; // ms
+
+  document.body.addEventListener('click', (event) => {
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTap;
+
+    // Ignore clicks inside the settings bar itself
+    const settingsBar = document.getElementById('top-settings-bar');
+    // Check if the target is a Node and within the settings bar
+    if (settingsBar && event.target instanceof Node && settingsBar.contains(event.target)) {
+      return;
+    }
+
+    if (tapTimeout) clearTimeout(tapTimeout);
+
+    if (timeSinceLastTap < doubleTapDelay && timeSinceLastTap > 0) {
+      // Double tap detected
+      console.log("Double tap detected");
+      toggleSettingsBar();
+      lastTap = 0; // Reset last tap time to prevent triple tap issues
+    } else {
+      // Single tap detected (wait to see if it becomes a double tap)
+      tapTimeout = setTimeout(() => {
+        console.log("Single tap detected");
+        togglePlayPause();
+      }, doubleTapDelay);
+    }
+    lastTap = now;
+  });
+
+  // Handle audio ending: navigate to next ayah
+  const audioElement = document.getElementById('ayah-audio-player');
+  if (audioElement instanceof HTMLAudioElement) {
+    audioElement.addEventListener('ended', () => {
+      console.log('Audio ended, navigating to next ayah');
+      updatePlayPauseButton(true); // Update UI, though button isn't visible
+      navigate('next');
+    });
+  } else {
+    console.warn("Audio element not found for 'ended' listener attachment.");
+  }
+
+  console.log("Core event listeners set up, including tap/double-tap.");
 }
