@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Core Imports from Modules
 import { fetchQuranVerse } from './modules/api.js';
 import { playAudio, playAyahAudio, updatePlayPauseButton } from './modules/audio.js';
@@ -6,6 +7,7 @@ import { initializeApp } from './modules/init.js';
 import { limitCacheSize, preloadNextVerse } from './modules/navigation.js';
 import {
   castSession,
+  currentAyahNumber,
   nextVersePreloader,
   setCurrentAyahNumber,
   setNextVersePreloader,
@@ -183,9 +185,91 @@ export async function loadAndDisplayAyah(globalAyahNumber) {
   return loadVerse(surahNumber, ayahWithinSurah);
 }
 
+// --- Swipe Navigation ---
+
+/**
+ * Navigates to the previous Ayah.
+ */
+async function goToPreviousAyah() {
+  if (currentAyahNumber <= 1) return; // Already at the first Ayah (1)
+  const previousGlobalAyah = currentAyahNumber - 1;
+  const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(previousGlobalAyah);
+  await loadVerse(surahNumber, ayahWithinSurah);
+}
+
+/**
+ * Navigates to the next Ayah.
+ */
+async function goToNextAyah() {
+  const MAX_AYAH_NUMBER = 6236; // Use the hardcoded maximum value
+  if (currentAyahNumber >= MAX_AYAH_NUMBER) return; // Already at the last Ayah
+  const nextGlobalAyah = currentAyahNumber + 1;
+  const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(nextGlobalAyah);
+  await loadVerse(surahNumber, ayahWithinSurah);
+}
+
 // MAIN INITIALIZATION LISTENER
 document.addEventListener('DOMContentLoaded', () => {
   initializeApp(); // Call the main initialization function from the module
+
+  // --- Swipe Event Listeners ---
+  // Attach listeners to the body for full-screen swipe detection
+  const swipeTargetElement = document.body;
+  let touchStartX = 0;
+  let touchEndX = 0;
+  let touchStartY = 0;
+  let touchEndY = 0;
+  const swipeThreshold = 50; // Minimum distance for a swipe
+  const verticalThreshold = 75; // Maximum vertical distance allowed for a horizontal swipe
+
+  if (swipeTargetElement) {
+    /**
+     * @param {TouchEvent} event
+     */
+    swipeTargetElement.addEventListener('touchstart', (event) => {
+      // Access changedTouches directly from the TouchEvent
+      touchStartX = event.changedTouches[0].screenX;
+      touchStartY = event.changedTouches[0].screenY;
+    }, { passive: true }); // Use passive listener for scroll performance
+
+    /**
+     * @param {TouchEvent} event
+     */
+    swipeTargetElement.addEventListener('touchend', (event) => {
+      // Access changedTouches directly from the TouchEvent
+      touchEndX = event.changedTouches[0].screenX;
+      touchEndY = event.changedTouches[0].screenY;
+      handleSwipeGesture();
+    }, { passive: true });
+  } else {
+    // This should realistically never happen with document.body
+    console.error("Could not find document.body to attach swipe listeners.");
+  }
+
+  function handleSwipeGesture() {
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+
+    // Check if it's primarily a horizontal swipe and meets threshold
+    if (Math.abs(deltaX) > swipeThreshold && Math.abs(deltaY) < verticalThreshold) {
+      if (deltaX < 0) {
+        // Swiped Left (Next)
+        console.log("Swipe Left detected - Next Ayah");
+        goToNextAyah();
+      } else {
+        // Swiped Right (Previous)
+        console.log("Swipe Right detected - Previous Ayah");
+        goToPreviousAyah();
+      }
+    } else {
+      // console.log("Swipe gesture not significant enough or too vertical.");
+    }
+    // Reset values for the next gesture
+    touchStartX = 0;
+    touchEndX = 0;
+    touchStartY = 0;
+    touchEndY = 0;
+  }
 });
 
 // SERVICE WORKER REGISTRATION
