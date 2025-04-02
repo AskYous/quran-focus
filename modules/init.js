@@ -103,10 +103,23 @@ export function initializeApp() {
   // Initialize particles background (if library is loaded)
   // @ts-ignore - particlesJS is loaded globally via script tag
   if (typeof window.particlesJS !== 'undefined') {
-    // @ts-ignore
-    window.particlesJS.load('particles-js', 'particles.json', function () {
-      console.log('Particles.js background initialized');
-    });
+    fetch('particles.json')
+      .then(response => response.json())
+      .then(config => {
+        // Adjust speed for smaller screens (e.g., mobile)
+        if (window.innerWidth < 768) {
+          config.particles.move.speed = 0.1; // Slower speed for mobile
+          console.log('Adjusted particle speed for mobile.');
+        }
+        // Initialize particles.js with the configuration object
+        // @ts-ignore
+        window.particlesJS('particles-js', config);
+        console.log('Particles.js background initialized with custom config');
+      })
+      .catch(error => {
+        console.error('Error loading or parsing particles.json:', error);
+        // Fallback or alternative initialization if needed
+      });
   } else {
     console.warn('particlesJS library not found.');
   }
