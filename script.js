@@ -1,7 +1,7 @@
 // @ts-nocheck
 // Core Imports from Modules
 import { fetchQuranVerse } from './modules/api.js';
-import { playAudio, playAyahAudio, updatePlayPauseButton } from './modules/audio.js';
+import { playAudio, playAyahAudio, togglePlayPause, updatePlayPauseButton } from './modules/audio.js';
 import { castMedia, initializeGlobalCastApiCallback } from './modules/cast.js';
 import { initializeApp } from './modules/init.js';
 import { limitCacheSize, preloadNextVerse } from './modules/navigation.js';
@@ -270,6 +270,16 @@ document.addEventListener('DOMContentLoaded', () => {
     touchStartY = 0;
     touchEndY = 0;
   }
+
+  // --- Keyboard Listener for Spacebar ---
+  document.addEventListener('keydown', (event) => {
+    // Check if the pressed key is the spacebar
+    if (event.key === ' ' || event.code === 'Space') {
+      event.preventDefault(); // Prevent default spacebar action (scrolling)
+      console.log("Spacebar pressed - Toggling play/pause");
+      togglePlayPause(); // Call the function from audio module
+    }
+  });
 });
 
 // SERVICE WORKER REGISTRATION
