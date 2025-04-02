@@ -848,7 +848,7 @@ p, h1, h2, h3, h4, h5, h6, span, label {
 
 /* Ayah reference display (e.g., 39:3) */
 .ayah-reference {
-  font-family: "Lato", sans-serif; /* Use a simpler font */
+  font-family: "Merriweather", serif; /* Use the same font as translation */
   font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.6); /* Muted color */
   text-align: center;
