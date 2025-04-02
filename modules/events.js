@@ -185,5 +185,33 @@ export function setupEventListeners() {
     console.warn("Audio element not found for 'ended' listener attachment.");
   }
 
-  console.log("Core event listeners set up, including tap/double-tap.");
+  // Keyboard Navigation (Arrow Keys)
+  document.addEventListener('keydown', (event) => {
+    // Ignore if modifier keys are pressed or if focus is on an input/select
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+      return;
+    }
+    if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'TEXTAREA')) {
+      return;
+    }
+
+    switch (event.key) {
+      case 'ArrowRight':
+        console.log('ArrowRight pressed, navigating next');
+        navigate('next');
+        break;
+      case 'ArrowLeft':
+        console.log('ArrowLeft pressed, navigating previous');
+        navigate('prev');
+        break;
+      default:
+        // Ignore other keys
+        return;
+    }
+
+    // Prevent default arrow key behavior (like scrolling) if navigation occurred
+    event.preventDefault();
+  });
+
+  console.log("Core event listeners set up, including tap/double-tap and keyboard navigation.");
 }
