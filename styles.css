@@ -343,7 +343,7 @@ body {
 
 @media (max-width: 480px) {
   .translation-text {
-    font-size: 0.95rem;
+    font-size: 0.95rem !important;
   }
 
   .verse-container {
