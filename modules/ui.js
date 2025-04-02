@@ -153,10 +153,8 @@ function animateParticles() {
     void particle.offsetWidth; // Force reflow
 
     const floatAnimation = isTranslation ? 'float-translation-particle' : 'float-particle';
-    const glowAnimation = isTranslation ? 'translation-glow-pulse' : 'glow-pulse';
 
-    particle.style.animation = `${floatAnimation} ${duration}s ease-in-out ${delay}s infinite,
-                              ${glowAnimation} ${duration / 2}s ease-in-out ${delay}s infinite`;
+    particle.style.animation = `${floatAnimation} ${duration}s ease-in-out ${delay}s infinite`;
 
     // Set random initial positions and properties
     particle.style.top = `${(isTranslation ? 30 : 20) + Math.random() * (isTranslation ? 40 : 60)}%`;
