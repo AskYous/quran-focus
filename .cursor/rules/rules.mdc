@@ -1,0 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+This is an HTML, CSS, and JS application. It doesn't use any framework. It's a client-side only web application. It needs to be responsive to all major devices.
+
+As you update the code, please make sure that the [README.md](mdc:README.md) and the [rules.mdc](mdc:.cursor/rules/rules.mdc) files stay updated.
