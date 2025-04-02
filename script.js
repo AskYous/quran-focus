@@ -151,7 +151,15 @@ let castSession = null;
  */
 // eslint-disable-next-line no-undef
 window.__onGCastApiAvailable = function (isAvailable) {
+  console.log('__onGCastApiAvailable called. isAvailable:', isAvailable);
+  console.log('Checking window.cast availability:', typeof window.cast);
   if (isAvailable) {
+    // Check if cast object is actually available globally when callback fires
+    if (typeof window.cast === 'undefined' || !window.cast.framework) {
+      console.error('!!! window.cast or window.cast.framework is not defined *inside* __onGCastApiAvailable');
+      // Optionally, try again after a longer delay, or show an error to the user
+      return;
+    }
     initializeCastApi();
   }
 };
@@ -160,6 +168,12 @@ window.__onGCastApiAvailable = function (isAvailable) {
  * Initializes the Cast API
  */
 function initializeCastApi() {
+  // Add check for cast API availability
+  if (!cast || !cast.framework) {
+    console.error('Cast SDK not available or framework not loaded.');
+    return;
+  }
+
   // Define APP_ID here, once the API is available
   // eslint-disable-next-line no-undef
   const APP_ID = chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID;
