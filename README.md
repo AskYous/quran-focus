@@ -1,10 +1,10 @@
 # Quran Focus 🕌
 
-A beautiful, minimalist web application for focused Quran meditation and recitation. Built with pure HTML, CSS, and JavaScript, this project is vibe-coded to create a serene and immersive experience for Quranic contemplation.
+A beautiful, minimalist web application for focused Quran reading and listening. Built with pure HTML, CSS, and JavaScript, this project is vibe-coded to create a serene and immersive experience for Quranic contemplation.
 
 ## 🌟 Features
 
-- **Minimalist Design**: Clean, distraction-free interface for focused meditation
+- **Minimalist Design**: Clean, distraction-free interface for focused reading
 - **Ambient Particles**: Beautiful particle animations in the background
 - **Audio Recitation**: High-quality audio playback of Quranic verses
 - **Progressive Web App (PWA)**: Installable on any device for offline access

@@ -77,8 +77,8 @@ export function padNumber(num, length) {
  */
 export function saveSelectionsToLocalStorage(surahNumber, ayahNumber) {
   try {
-    localStorage.setItem('quranMeditationSpace_surah', String(surahNumber));
-    localStorage.setItem('quranMeditationSpace_ayah', String(ayahNumber));
+    localStorage.setItem('quranFocusSpace_surah', String(surahNumber));
+    localStorage.setItem('quranFocusSpace_ayah', String(ayahNumber));
     // console.log('Selections saved to local storage:', { surah: surahNumber, ayah: ayahNumber });
   } catch (error) {
     console.error('Error saving to local storage:', error);
@@ -91,8 +91,8 @@ export function saveSelectionsToLocalStorage(surahNumber, ayahNumber) {
  */
 export function loadSelectionsFromLocalStorage() {
   try {
-    const savedSurah = localStorage.getItem('quranMeditationSpace_surah');
-    const savedAyah = localStorage.getItem('quranMeditationSpace_ayah');
+    const savedSurah = localStorage.getItem('quranFocusSpace_surah');
+    const savedAyah = localStorage.getItem('quranFocusSpace_ayah');
     return {
       surah: savedSurah ? savedSurah : "1",
       ayah: savedAyah ? savedAyah : "1"
