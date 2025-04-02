@@ -2,7 +2,7 @@ export async function fetchQuranVerse(surahNumber, ayahNumber) {
   console.log(`Fetching verse data for Surah ${surahNumber}, Ayah ${ayahNumber}`);
 
   try {
-    const response = await fetch(`https://api.alquran.cloud/v1/ayah/${surahNumber}:${ayahNumber}/editions/quran-simple,en.sahih`);
+    const response = await fetch(`https://api.alquran.cloud/v1/ayah/${surahNumber}:${ayahNumber}/editions/quran-simple,en.hilali`);
 
     if (!response.ok) {
       throw new Error(`API returned status: ${response.status}`);
