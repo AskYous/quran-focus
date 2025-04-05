@@ -251,6 +251,48 @@ export function trackSettingsChange(setting, value) {
 }
 
 /**
+ * Track settings panel open event
+ */
+export function trackSettingsPanelOpen() {
+  if (!window['mixpanel'] || !mixpanelInitialized) return;
+
+  try {
+    window['mixpanel'].track('Settings Panel Open');
+  } catch (e) {
+    console.error('Error tracking settings panel open:', e);
+  }
+}
+
+/**
+ * Track settings panel close event
+ */
+export function trackSettingsPanelClose() {
+  if (!window['mixpanel'] || !mixpanelInitialized) return;
+
+  try {
+    window['mixpanel'].track('Settings Panel Close');
+  } catch (e) {
+    console.error('Error tracking settings panel close:', e);
+  }
+}
+
+/**
+ * Track fullscreen mode toggle event
+ * @param {boolean} isEntering True if entering fullscreen, false if exiting.
+ */
+export function trackFullscreenToggle(isEntering) {
+  if (!window['mixpanel'] || !mixpanelInitialized) return;
+
+  try {
+    window['mixpanel'].track('Fullscreen Toggle', {
+      state: isEntering ? 'entered' : 'exited'
+    });
+  } catch (e) {
+    console.error('Error tracking fullscreen toggle:', e);
+  }
+}
+
+/**
  * Helper function to calculate global Ayah number
  * @param {number} surahNumber The surah number
  * @param {number} ayahNumber The ayah number

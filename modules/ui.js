@@ -1,3 +1,4 @@
+import { trackSettingsPanelClose, trackSettingsPanelOpen } from './analytics.js'; // Import analytics tracking
 import { preloadNextVerse } from './navigation.js'; // Assume preloadNextVerse moves to navigation
 import { quranData } from './quranData.js';
 import { isUserInteractingWithSettings, nextVersePreloader, setNextVersePreloader, setSettingsBarTimeout, settingsBarTimeout } from './state.js';
@@ -285,9 +286,11 @@ export function toggleSettingsBar() {
     // Currently visible, so hide it
     settingsBar.classList.remove('visible');
     clearTimeout(settingsBarTimeout); // Clear any existing hide timer
+    trackSettingsPanelClose(); // Track close event
   } else {
     // Currently hidden, so show it
     settingsBar.classList.add('visible');
     resetSettingsBarHideTimeout(); // Start the timer to hide it again
+    trackSettingsPanelOpen(); // Track open event
   }
 }

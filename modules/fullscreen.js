@@ -1,6 +1,8 @@
 /**
  * Sets up the fullscreen toggle button and its event listeners.
  */
+import { trackFullscreenToggle } from './analytics.js'; // Import analytics tracking
+
 export function setupFullscreenToggle() {
   const fullscreenButton = document.getElementById('fullscreen-toggle');
   // Use querySelector which returns Element | null
@@ -22,12 +24,10 @@ export function setupFullscreenToggle() {
   const doc = document;
   const docEl = document.documentElement;
   const isFullscreenSupported = doc.fullscreenEnabled ||
-    // @ts-ignore - vendor prefixes
-    doc.webkitFullscreenEnabled ||
-    // @ts-ignore
-    doc.mozFullScreenEnabled ||
-    // @ts-ignore
-    doc.msFullscreenEnabled;
+    // Use bracket notation for vendor prefixes
+    doc['webkitFullscreenEnabled'] ||
+    doc['mozFullScreenEnabled'] ||
+    doc['msFullscreenEnabled'];
 
   if (!isFullscreenSupported) {
     fullscreenButton.style.display = 'none'; // Hide button if not supported
@@ -37,13 +37,15 @@ export function setupFullscreenToggle() {
 
   function updateFullscreenIcon() {
     // Check current fullscreen element (with vendor prefixes)
-    const fullscreenElement = doc.fullscreenElement ||
-      // @ts-ignore
-      doc.webkitFullscreenElement ||
-      // @ts-ignore
-      doc.mozFullScreenElement ||
-      // @ts-ignore
-      doc.msFullscreenElement;
+    // Use bracket notation for vendor prefixes
+    const fullscreenElement = doc['fullscreenElement'] ||
+      doc['webkitFullscreenElement'] ||
+      doc['mozFullScreenElement'] ||
+      doc['msFullscreenElement'];
+
+    // Track the state change *after* checking the elements
+    // This function is called by the 'fullscreenchange' event listener
+    trackFullscreenToggle(!!fullscreenElement); // Convert element presence to boolean
 
     // Re-check elements are HTMLElement/Element before accessing style/title
     if (!(fullscreenButton instanceof HTMLElement) ||
@@ -52,7 +54,8 @@ export function setupFullscreenToggle() {
       return; // Should not happen if initial checks passed
     }
 
-    // Accessing .style on Element (could be HTMLElement or SVGElement)
+    // Accessing .style directly on Element
+    // Relies on browser behavior or @ts-nocheck to work despite potential linter warning
     if (fullscreenElement) {
       fullscreenIcon.style.display = 'none';
       exitFullscreenIcon.style.display = 'block';
@@ -65,29 +68,26 @@ export function setupFullscreenToggle() {
   }
 
   fullscreenButton.addEventListener('click', () => {
-    const fullscreenElement = doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement;
+    // Use bracket notation for vendor prefixes
+    const fullscreenElement = doc['fullscreenElement'] || doc['webkitFullscreenElement'] || doc['mozFullScreenElement'] || doc['msFullscreenElement'];
 
     if (!fullscreenElement) {
       // Enter fullscreen (with vendor prefixes)
-      const requestFullscreen = docEl.requestFullscreen ||
-        // @ts-ignore
-        docEl.webkitRequestFullscreen ||
-        // @ts-ignore
-        docEl.mozRequestFullScreen ||
-        // @ts-ignore
-        docEl.msRequestFullscreen;
+      // Use bracket notation for vendor prefixes
+      const requestFullscreen = docEl['requestFullscreen'] ||
+        docEl['webkitRequestFullscreen'] ||
+        docEl['mozRequestFullScreen'] ||
+        docEl['msRequestFullscreen'];
       if (requestFullscreen) {
         requestFullscreen.call(docEl).catch(err => console.error(`FS Enter Error: ${err.message} (${err.name})`));
       }
     } else {
       // Exit fullscreen (with vendor prefixes)
-      const exitFullscreen = doc.exitFullscreen ||
-        // @ts-ignore
-        doc.webkitExitFullscreen ||
-        // @ts-ignore
-        doc.mozCancelFullScreen ||
-        // @ts-ignore
-        doc.msExitFullscreen;
+      // Use bracket notation for vendor prefixes
+      const exitFullscreen = doc['exitFullscreen'] ||
+        doc['webkitExitFullscreen'] ||
+        doc['mozCancelFullScreen'] ||
+        doc['msExitFullscreen'];
       if (exitFullscreen) {
         exitFullscreen.call(doc).catch(err => console.error(`FS Exit Error: ${err.message} (${err.name})`));
       }
