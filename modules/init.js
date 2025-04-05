@@ -1,4 +1,5 @@
 import { loadVerse } from '../script.js'; // Needed for setDefaultSelections
+import { initializeAnalytics } from './analytics.js'; // Import analytics module
 import { handleSurahChange, setupEventListeners } from './events.js';
 import { setupFullscreenToggle } from './fullscreen.js';
 import { initializeCacheCleanup } from './navigation.js';
@@ -99,6 +100,9 @@ function preloadFonts() {
  */
 export function initializeApp() {
   console.log("Initializing Quran Focus App...");
+
+  // Initialize Mixpanel analytics
+  initializeAnalytics();
 
   // Initialize particles background (if library is loaded)
   // @ts-ignore - particlesJS is loaded globally via script tag

@@ -3,6 +3,7 @@
 import { fetchQuranVerse } from './modules/api.js';
 import { playAudio, playAyahAudio, togglePlayPause, updatePlayPauseButton } from './modules/audio.js';
 // import { castMedia, initializeGlobalCastApiCallback } from './modules/cast.js';
+import { trackNavigation, trackVerseLoad } from './modules/analytics.js'; // Import analytics tracking
 import { initializeApp } from './modules/init.js';
 import { limitCacheSize, preloadNextVerse } from './modules/navigation.js';
 import {
@@ -41,6 +42,9 @@ export async function loadVerse(surahNumber, ayahNumber) {
 
   const globalAyahNumber = calculateGlobalAyahNumber(sNum, aNum);
   setCurrentAyahNumber(globalAyahNumber); // Update global state
+
+  // Track verse load 
+  trackVerseLoad(sNum, aNum);
 
   // Update URL without triggering a page reload (optional, but good practice)
   try {
@@ -208,6 +212,10 @@ async function goToPreviousAyah() {
   if (currentAyahNumber <= 1) return; // Already at the first Ayah (1)
   const previousGlobalAyah = currentAyahNumber - 1;
   const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(previousGlobalAyah);
+
+  // Track navigation event
+  trackNavigation('previous', surahNumber, ayahWithinSurah);
+
   await loadVerse(surahNumber, ayahWithinSurah);
 }
 
@@ -219,6 +227,10 @@ async function goToNextAyah() {
   if (currentAyahNumber >= MAX_AYAH_NUMBER) return; // Already at the last Ayah
   const nextGlobalAyah = currentAyahNumber + 1;
   const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(nextGlobalAyah);
+
+  // Track navigation event
+  trackNavigation('next', surahNumber, ayahWithinSurah);
+
   await loadVerse(surahNumber, ayahWithinSurah);
 }
 
@@ -319,6 +331,9 @@ function showOnboardingModal() {
   });
 
   modalOverlay.classList.remove('hidden');
+
+  // Track onboarding start
+  trackOnboarding('step-1', 'start');
 }
 
 /**
@@ -357,6 +372,9 @@ function initializeOnboarding() {
         const nextStep = document.getElementById(nextStepId);
         if (nextStep) {
           nextStep.classList.remove('hidden');
+
+          // Track navigation to next step
+          trackOnboarding(nextStepId, 'next');
         }
       } else if (button.classList.contains('prev')) {
         const prevStepId = button.getAttribute('data-prev-step');
@@ -364,8 +382,17 @@ function initializeOnboarding() {
         const prevStep = document.getElementById(prevStepId);
         if (prevStep) {
           prevStep.classList.remove('hidden');
+
+          // Track navigation to previous step
+          trackOnboarding(prevStepId, 'previous');
         }
-      } else if (button.classList.contains('skip') || button.classList.contains('finish')) {
+      } else if (button.classList.contains('skip')) {
+        // Track skip action
+        trackOnboarding('skipped', 'skip');
+        closeOnboarding();
+      } else if (button.classList.contains('finish')) {
+        // Track finish action
+        trackOnboarding('completed', 'finish');
         closeOnboarding();
       }
     });

@@ -1,4 +1,5 @@
 import { loadVerse } from '../script.js'; // Needed for handleAyahChange
+import { trackSelection } from './analytics.js'; // Import analytics tracking
 import { togglePlayPause, updatePlayPauseButton } from './audio.js'; // Removed showAudioControls, resetAudioHideTimeout
 import { navigate } from './navigation.js';
 import { quranData } from './quranData.js';
@@ -49,6 +50,10 @@ export function handleSurahChange() {
       const populatedAyahSelect = document.getElementById('ayah-select');
       if (populatedAyahSelect instanceof HTMLSelectElement && populatedAyahSelect.options.length > 1) {
         populatedAyahSelect.value = "1"; // Explicitly set to Ayah 1
+
+        // Track selection
+        trackSelection(selectedSurahNumber, 1);
+
         // Instead of dispatching change, directly call handleAyahChange or loadVerse
         // handleAyahChange(); // This might be better
         loadVerse(selectedSurahNumber, 1).catch(e => console.error("Error loading verse after surah change:", e));
@@ -73,8 +78,8 @@ export function handleAyahChange() {
 
   if (!(surahSelectElement instanceof HTMLSelectElement) || !(ayahSelectElement instanceof HTMLSelectElement)) return;
 
-  const selectedSurahNumber = surahSelectElement.value;
-  const selectedAyahNumber = ayahSelectElement.value;
+  const selectedSurahNumber = parseInt(surahSelectElement.value);
+  const selectedAyahNumber = parseInt(ayahSelectElement.value);
 
   if (!selectedSurahNumber || !selectedAyahNumber) {
     console.log("Ayah change detected, but Surah or Ayah not selected.");
@@ -83,6 +88,9 @@ export function handleAyahChange() {
 
   // Save selection
   saveSelectionsToLocalStorage(selectedSurahNumber, selectedAyahNumber);
+
+  // Track selection
+  trackSelection(selectedSurahNumber, selectedAyahNumber);
 
   // Calculate global number and update state
   const globalAyahNumber = calculateGlobalAyahNumber(selectedSurahNumber, selectedAyahNumber);

@@ -1,4 +1,5 @@
 import { loadAndDisplayAyah } from '../script.js'; // Main script handles loading logic
+import { trackAudioPause, trackAudioPlay } from './analytics.js'; // Import analytics tracking
 import { castSession, currentAyahNumber, setWasPlayingBeforeNavigation } from './state.js';
 import { calculateSurahAndAyah, padNumber } from './utils.js';
 
@@ -122,6 +123,10 @@ export function togglePlayPause() {
       updatePlayPauseButton(true);
       setWasPlayingBeforeNavigation(false);
       triggerPlayFeedbackAnimation(); // Feedback on pause
+
+      // Track audio pause
+      const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(currentAyahNumber);
+      trackAudioPause(surahNumber, ayahWithinSurah);
     }
   }
 }
@@ -151,6 +156,10 @@ export function playAudio() {
         updatePlayPauseButton(false);
         setWasPlayingBeforeNavigation(true);
         triggerPlayFeedbackAnimation(); // Feedback on play
+
+        // Track audio play
+        const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(currentAyahNumber);
+        trackAudioPlay(surahNumber, ayahWithinSurah);
       })
       .catch(error => {
         console.error('Error playing audio:', error);
@@ -170,6 +179,10 @@ export function playAudio() {
           updatePlayPauseButton(false);
           setWasPlayingBeforeNavigation(true);
           triggerPlayFeedbackAnimation(); // Feedback on play
+
+          // Track audio play
+          const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(currentAyahNumber);
+          trackAudioPlay(surahNumber, ayahWithinSurah);
         })
         .catch(error => {
           console.error('Error playing audio after wait:', error);
