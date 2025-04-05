@@ -293,6 +293,24 @@ export function trackFullscreenToggle(isEntering) {
 }
 
 /**
+ * Track page hidden event (user switching tabs or leaving)
+ */
+export function trackPageHidden() {
+  // Check for mixpanel presence just in case, though it should be initialized
+  if (!window['mixpanel'] || !mixpanelInitialized) return;
+
+  try {
+    // Use the standard track method. Mixpanel library handles queueing 
+    // and attempts to send data reliably on page hide/unload.
+    window['mixpanel'].track('Page Hidden', {
+      url: document.location.pathname // Include path for context
+    });
+  } catch (e) {
+    console.error('Error tracking page hidden:', e);
+  }
+}
+
+/**
  * Helper function to calculate global Ayah number
  * @param {number} surahNumber The surah number
  * @param {number} ayahNumber The ayah number

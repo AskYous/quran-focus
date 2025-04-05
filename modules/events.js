@@ -1,5 +1,5 @@
 import { loadVerse } from '../script.js'; // Needed for handleAyahChange
-import { trackSelection } from './analytics.js'; // Import analytics tracking
+import { trackPageHidden, trackSelection } from './analytics.js'; // Import analytics tracking
 import { togglePlayPause, updatePlayPauseButton } from './audio.js'; // Removed showAudioControls, resetAudioHideTimeout
 import { navigate } from './navigation.js';
 import { quranData } from './quranData.js';
@@ -221,5 +221,12 @@ export function setupEventListeners() {
     event.preventDefault();
   });
 
-  console.log("Core event listeners set up, including tap/double-tap and keyboard navigation.");
+  // Track Page Visibility Changes
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      trackPageHidden();
+    }
+  });
+
+  console.log("Core event listeners set up, including tap/double-tap, keyboard navigation, and page visibility.");
 }
