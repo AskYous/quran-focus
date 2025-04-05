@@ -147,14 +147,28 @@ export async function loadVerse(surahNumber, ayahNumber) {
     }
   }
 
-  // Handle audio based on fetched data success
+  // If verse data is valid, proceed with audio and display
   if (verseData && !verseData.error) {
-    await playAyahAudio(globalAyahNumber);
-    if (wasPlayingBeforeNavigation) {
-      console.log("[Local] Attempting to autoplay.");
-      playAudio();
-    } else {
-      updatePlayPauseButton(true);
+    try {
+      // 1. Start loading the audio (don't await yet)
+      const audioReadyPromise = playAyahAudio(globalAyahNumber);
+
+      // 2. Display the verse text (which starts the animation)
+      await displayVerse(sNum, aNum, verseData);
+
+      // 3. Now wait for audio to be ready
+      await audioReadyPromise;
+
+      // 4. If autoplay is intended, start playback now that audio is ready and animation has started
+      if (wasPlayingBeforeNavigation) {
+        console.log(`[Local] Attempting to autoplay now that audio is ready.`);
+        playAudio();
+      } else {
+        updatePlayPauseButton(true); // Show play button if not autoplaying
+      }
+    } catch (error) {
+      console.error("[Local] Error handling audio playback:", error);
+      updatePlayPauseButton(true); // Ensure play button shown on error
     }
   } else {
     updatePlayPauseButton(true); // Ensure play button shown on error
@@ -254,13 +268,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check if it's primarily a horizontal swipe and meets threshold
     if (Math.abs(deltaX) > swipeThreshold && Math.abs(deltaY) < verticalThreshold) {
       if (deltaX < 0) {
-        // Swiped Left (Next)
-        console.log("Swipe Left detected - Next Ayah");
-        goToNextAyah();
+        // Swiped Left (Previous) - Changed from Next
+        console.log("Swipe Left detected - Previous Ayah");
+        goToPreviousAyah(); // Changed from goToNextAyah
       } else {
-        // Swiped Right (Previous)
-        console.log("Swipe Right detected - Previous Ayah");
-        goToPreviousAyah();
+        // Swiped Right (Next) - Changed from Previous
+        console.log("Swipe Right detected - Next Ayah");
+        goToNextAyah(); // Changed from goToPreviousAyah
       }
     } else {
       // console.log("Swipe gesture not significant enough or too vertical.");
