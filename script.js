@@ -388,12 +388,12 @@ function initializeOnboarding() {
         }
       } else if (button.classList.contains('skip')) {
         // Track skip action
-        trackOnboarding('skipped', 'skip');
         closeOnboarding();
+        trackOnboarding('skipped', 'skip');
       } else if (button.classList.contains('finish')) {
         // Track finish action
-        trackOnboarding('completed', 'finish');
         closeOnboarding();
+        trackOnboarding('completed', 'finish');
       }
     });
   });
