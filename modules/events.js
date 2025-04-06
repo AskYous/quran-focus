@@ -163,6 +163,14 @@ export function setupEventListeners() {
     if (settingsBar && event.target instanceof Node && settingsBar.contains(event.target)) {
       return;
     }
+    // Ignore clicks inside the onboarding modal itself
+    const onboardingModal = document.getElementById('onboarding-modal');
+    if (onboardingModal && event.target instanceof Node && onboardingModal.contains(event.target)) {
+      // Don't ignore skip/next/prev buttons inside the modal
+      if (!(event.target instanceof HTMLButtonElement && event.target.closest('.onboarding-step'))) {
+        return;
+      }
+    }
 
     if (tapTimeout) clearTimeout(tapTimeout);
 
@@ -174,8 +182,17 @@ export function setupEventListeners() {
     } else {
       // Single tap detected (wait to see if it becomes a double tap)
       tapTimeout = setTimeout(() => {
-        console.log("Single tap detected");
-        togglePlayPause();
+        // Check if onboarding is active before toggling play/pause
+        const onboardingModalCheck = document.getElementById('onboarding-modal');
+        const isOnboardingActive = onboardingModalCheck && !onboardingModalCheck.classList.contains('hidden');
+
+        if (!isOnboardingActive) {
+          console.log("Single tap detected");
+          togglePlayPause();
+        } else {
+          console.log("Single tap detected, but onboarding is active - ignoring.");
+          // Optionally provide feedback or do nothing
+        }
       }, doubleTapDelay);
     }
     lastTap = now;
