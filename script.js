@@ -43,10 +43,11 @@ export async function loadVerse(surahNumber, ayahNumber) {
   const globalAyahNumber = calculateGlobalAyahNumber(sNum, aNum);
   setCurrentAyahNumber(globalAyahNumber); // Update global state
 
-  // Track verse load 
+  // Track verse load
   trackVerseLoad(sNum, aNum);
 
   // Update URL without triggering a page reload (optional, but good practice)
+  /*
   try {
     const currentParams = new URLSearchParams(window.location.search);
     if (currentParams.get('surah') !== String(sNum) || currentParams.get('ayah') !== String(aNum)) {
@@ -56,6 +57,7 @@ export async function loadVerse(surahNumber, ayahNumber) {
   } catch (e) {
     console.warn("Could not update URL state:", e);
   }
+  */
 
   // Set the dropdown values (ensure elements exist)
   const surahSelect = document.getElementById('surah-select');
