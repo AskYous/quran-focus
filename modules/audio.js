@@ -1,6 +1,6 @@
 import { loadAndDisplayAyah } from '../script.js'; // Main script handles loading logic
 import { trackAudioPause, trackAudioPlay } from './analytics.js'; // Import analytics tracking
-import { castSession, currentAyahNumber, setWasPlayingBeforeNavigation } from './state.js';
+import { currentAyahNumber, setWasPlayingBeforeNavigation } from './state.js';
 import { calculateSurahAndAyah, padNumber } from './utils.js';
 
 /**
@@ -93,42 +93,42 @@ export function playAyahAudio(ayahNumber) {
  */
 export function togglePlayPause() {
   // @ts-ignore - Cast types are external
-  if (castSession && castSession.getSessionState() === cast.framework.SessionState.SESSION_STARTED) {
-    // Casting session active - control remote player
-    // @ts-ignore
-    const remotePlayer = new cast.framework.RemotePlayer();
-    // @ts-ignore
-    const remotePlayerController = new cast.framework.RemotePlayerController(remotePlayer);
-    remotePlayerController.playOrPause();
-    // Button state updated by IS_PAUSED_CHANGED listener in cast.js
-  } else {
-    // No casting session - control local player
-    const audioPlayerElement = document.getElementById('ayah-audio-player');
-    if (!(audioPlayerElement instanceof HTMLAudioElement)) return;
-    const audioPlayer = audioPlayerElement;
+  // if (castSession && castSession.getSessionState() === cast.framework.SessionState.SESSION_STARTED) {
+  //   // Casting session active - control remote player
+  //   // @ts-ignore
+  //   const remotePlayer = new cast.framework.RemotePlayer();
+  //   // @ts-ignore
+  //   const remotePlayerController = new cast.framework.RemotePlayerController(remotePlayer);
+  //   remotePlayerController.playOrPause();
+  //   // Button state updated by IS_PAUSED_CHANGED listener in cast.js
+  // } else {
+  // No casting session - control local player
+  const audioPlayerElement = document.getElementById('ayah-audio-player');
+  if (!(audioPlayerElement instanceof HTMLAudioElement)) return;
+  const audioPlayer = audioPlayerElement;
 
-    if (audioPlayer.paused) {
-      // Check if src is missing, points to the page itself (initial state), or is empty
-      if (!audioPlayer.src || audioPlayer.src === window.location.href || audioPlayer.src === '') {
-        console.log("No valid audio source, attempting to load current ayah first.");
-        loadAndDisplayAyah(currentAyahNumber).then(() => {
-          // Playback might be handled by loadVerse, but trigger feedback on intent
-          triggerPlayFeedbackAnimation();
-        }).catch(err => console.error("Error loading ayah on toggle play:", err));
-      } else {
-        playAudio(); // Play existing source (playAudio will trigger feedback)
-      }
+  if (audioPlayer.paused) {
+    // Check if src is missing, points to the page itself (initial state), or is empty
+    if (!audioPlayer.src || audioPlayer.src === window.location.href || audioPlayer.src === '') {
+      console.log("No valid audio source, attempting to load current ayah first.");
+      loadAndDisplayAyah(currentAyahNumber).then(() => {
+        // Playback might be handled by loadVerse, but trigger feedback on intent
+        triggerPlayFeedbackAnimation();
+      }).catch(err => console.error("Error loading ayah on toggle play:", err));
     } else {
-      audioPlayer.pause();
-      updatePlayPauseButton(true);
-      setWasPlayingBeforeNavigation(false);
-      triggerPlayFeedbackAnimation(); // Feedback on pause
-
-      // Track audio pause
-      const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(currentAyahNumber);
-      trackAudioPause(surahNumber, ayahWithinSurah);
+      playAudio(); // Play existing source (playAudio will trigger feedback)
     }
+  } else {
+    audioPlayer.pause();
+    updatePlayPauseButton(true);
+    setWasPlayingBeforeNavigation(false);
+    triggerPlayFeedbackAnimation(); // Feedback on pause
+
+    // Track audio pause
+    const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(currentAyahNumber);
+    trackAudioPause(surahNumber, ayahWithinSurah);
   }
+  // }
 }
 
 /**
@@ -196,32 +196,11 @@ export function playAudio() {
         console.warn('Audio never reached canplay state, play attempt timed out.');
         updatePlayPauseButton(true);
       }
-    }, 7000);
+    }, 7000); // Increased timeout for play attempt
   }
 }
 
 /**
- * Preloads audio for a given global Ayah number.
- * @param {number} ayahNumber Global Ayah number.
+ * Updates the play/pause button icon.
+ * @param {boolean} showPlay True to show play icon, false to show pause icon.
  */
-export function preloadAudio(ayahNumber) {
-  const tempAudio = new Audio();
-  const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(ayahNumber);
-  const paddedSurah = padNumber(surahNumber, 3);
-  const paddedAyah = padNumber(ayahWithinSurah, 3);
-  const audioURL = `https://everyayah.com/data/khalefa_al_tunaiji_64kbps/${paddedSurah}${paddedAyah}.mp3`;
-
-  tempAudio.src = audioURL;
-  tempAudio.preload = 'auto'; // Hint to the browser to preload
-  tempAudio.load();
-
-  // Optional: Log when preloading is complete or handle errors
-  tempAudio.oncanplaythrough = () => {
-    // console.log(`Audio preloaded for ayah: ${ayahNumber}`);
-    tempAudio.oncanplaythrough = null; // Clean up listener
-  };
-  tempAudio.onerror = () => {
-    console.error(`Error preloading audio for ayah: ${ayahNumber}`);
-    tempAudio.onerror = null; // Clean up listener
-  };
-}

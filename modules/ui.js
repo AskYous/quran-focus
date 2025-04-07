@@ -1,7 +1,6 @@
 import { trackSettingsPanelClose, trackSettingsPanelOpen } from './analytics.js'; // Import analytics tracking
-import { preloadNextVerse } from './navigation.js'; // Assume preloadNextVerse moves to navigation
 import { quranData } from './quranData.js';
-import { isUserInteractingWithSettings, nextVersePreloader, setNextVersePreloader, setSettingsBarTimeout, settingsBarTimeout } from './state.js';
+import { isUserInteractingWithSettings, setSettingsBarTimeout, settingsBarTimeout } from './state.js';
 
 /**
  * Populates the Surah selection dropdown with animation.
@@ -230,14 +229,14 @@ export async function displayVerse(surahNumber, ayahNumber, verseData) {
   // Update metadata display
   updateAyahMetadata(verseData.meta);
 
-  // Start preloading the next verse (uses state for timeout handle)
-  if (nextVersePreloader) {
-    clearTimeout(nextVersePreloader);
-  }
-  const preloaderTimeout = setTimeout(() => {
-    preloadNextVerse(surahNumber, ayahNumber);
-  }, 500);
-  setNextVersePreloader(preloaderTimeout); // Store timeout ID
+  // Preload next verse - REMOVED
+  // if (nextVersePreloader) {
+  //   clearTimeout(nextVersePreloader);
+  // }
+  // const preloaderTimeout = setTimeout(() => {
+  //   preloadNextVerse(surahNumber, ayahNumber);
+  // }, 500);
+  // setNextVersePreloader(preloaderTimeout); // Store timeout ID
 }
 
 /**
@@ -254,7 +253,9 @@ export function showSettingsBar(resetTimeout = true) {
     resetSettingsBarHideTimeout(); // Use the updated reset function
   } else {
     // If not resetting, clear any existing timeout so hover takes precedence
-    clearTimeout(settingsBarTimeout);
+    if (settingsBarTimeout !== null) {
+      clearTimeout(settingsBarTimeout);
+    }
   }
 }
 
@@ -263,7 +264,9 @@ export function showSettingsBar(resetTimeout = true) {
  * @param {number} [delay=3000] The delay before hiding.
  */
 export function resetSettingsBarHideTimeout(delay = 3000) {
-  clearTimeout(settingsBarTimeout);
+  if (settingsBarTimeout !== null) {
+    clearTimeout(settingsBarTimeout);
+  }
   const settingsBar = document.getElementById('top-settings-bar');
 
   const timeout = setTimeout(() => {
@@ -285,7 +288,9 @@ export function toggleSettingsBar() {
   if (settingsBar.classList.contains('visible')) {
     // Currently visible, so hide it
     settingsBar.classList.remove('visible');
-    clearTimeout(settingsBarTimeout); // Clear any existing hide timer
+    if (settingsBarTimeout !== null) {
+      clearTimeout(settingsBarTimeout);
+    }
     trackSettingsPanelClose(); // Track close event
   } else {
     // Currently hidden, so show it

@@ -1,6 +1,4 @@
 import { loadVerse } from '../script.js'; // Assumes loadVerse is exported from main script
-import { fetchQuranVerse } from './api.js';
-import { preloadAudio } from './audio.js';
 import { quranData } from './quranData.js';
 import { setCurrentAyahNumber, verseCache } from './state.js';
 import { calculateGlobalAyahNumber } from './utils.js';
@@ -57,51 +55,14 @@ export function navigate(direction) {
 // Keeping them for now but consider if they are still needed.
 
 /**
- * Preloads the verse data and audio for the next Ayah.
- * @param {string | number} currentSurah
- * @param {string | number} currentAyah
- */
-export async function preloadNextVerse(currentSurah, currentAyah) {
-  try {
-    let nextSurah = parseInt(String(currentSurah));
-    let nextAyah = parseInt(String(currentAyah)) + 1;
-
-    const currentSurahData = quranData.find(s => s.number == nextSurah);
-    if (currentSurahData && nextAyah > currentSurahData.ayahCount) {
-      nextSurah++;
-      nextAyah = 1;
-      if (nextSurah > 114) {
-        nextSurah = 1;
-      }
-    }
-
-    const cacheKey = `${nextSurah}:${nextAyah}`;
-    if (!verseCache.has(cacheKey)) {
-      // console.log(`Preloading verse: ${cacheKey}`);
-      const verseData = await fetchQuranVerse(nextSurah, nextAyah);
-      if (!verseData.error) {
-        verseCache.set(cacheKey, verseData);
-        limitCacheSize(); // Check cache size after adding
-        // Also preload audio associated with this verse
-        const nextGlobalAyah = calculateGlobalAyahNumber(nextSurah, nextAyah);
-        preloadAudio(nextGlobalAyah);
-      } else {
-        console.warn(`Failed to preload verse ${cacheKey}: ${verseData.error}`);
-      }
-    }
-  } catch (error) {
-    console.error("Error preloading next verse:", error);
-  }
-}
-
-/**
- * Limits the size of the verse cache by removing the oldest entries.
+ * Limits the size of the verse cache.
  */
 export function limitCacheSize() {
-  if (verseCache.size > MAX_CACHE_SIZE) {
-    const keysToDelete = Array.from(verseCache.keys()).slice(0, verseCache.size - MAX_CACHE_SIZE);
-    // console.log(`Cache limit exceeded (${verseCache.size}/${MAX_CACHE_SIZE}). Removing ${keysToDelete.length} oldest entries.`);
-    keysToDelete.forEach(key => verseCache.delete(key));
+  while (verseCache.size > MAX_CACHE_SIZE) {
+    // Delete the oldest entry (first key in iteration order)
+    const oldestKey = verseCache.keys().next().value;
+    verseCache.delete(oldestKey);
+    // console.log(`Cache limit reached. Removed oldest entry: ${oldestKey}`);
   }
 }
 

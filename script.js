@@ -5,13 +5,11 @@ import { playAudio, playAyahAudio, togglePlayPause, updatePlayPauseButton } from
 // import { castMedia, initializeGlobalCastApiCallback } from './modules/cast.js';
 import { trackNavigation, trackVerseLoad } from './modules/analytics.js'; // Import analytics tracking
 import { initializeApp } from './modules/init.js';
-import { limitCacheSize, preloadNextVerse } from './modules/navigation.js';
+import { limitCacheSize } from './modules/navigation.js';
 import {
   // castSession,
   currentAyahNumber,
-  nextVersePreloader,
   setCurrentAyahNumber,
-  setNextVersePreloader,
   verseCache,
   wasPlayingBeforeNavigation
 } from './modules/state.js';
@@ -180,12 +178,12 @@ export async function loadVerse(surahNumber, ayahNumber) {
     updatePlayPauseButton(true); // Ensure play button shown on error
   }
 
-  // Preload next verse
-  if (nextVersePreloader) clearTimeout(nextVersePreloader);
-  const timeoutId = setTimeout(() => {
-    preloadNextVerse(sNum, aNum);
-  }, 750);
-  setNextVersePreloader(timeoutId);
+  // Preload next verse - REMOVED
+  // if (nextVersePreloader) clearTimeout(nextVersePreloader);
+  // const timeoutId = setTimeout(() => {
+  //   preloadNextVerse(sNum, aNum);
+  // }, 750);
+  // setNextVersePreloader(timeoutId);
 }
 
 /**
