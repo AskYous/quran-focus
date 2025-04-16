@@ -6,7 +6,7 @@ import { playAudio, playAyahAudio, togglePlayPause, updatePlayPauseButton } from
 import { trackNavigation, trackVerseLoad } from './modules/analytics.js'; // Import analytics tracking
 import { initializeApp } from './modules/init.js';
 import { limitCacheSize } from './modules/navigation.js';
-import { preloadAyahAudio, cleanupPreloadedAudio } from './modules/preload.js';
+// Preloading removed
 import {
   // castSession,
   currentAyahNumber,
@@ -152,50 +152,29 @@ export async function loadVerse(surahNumber, ayahNumber) {
     }
   }
 
-  // If verse data is valid, proceed with audio and display
+  // If verse data is valid, proceed with display and conditionally load audio
   if (verseData && !verseData.error) {
     try {
-      // 1. Start loading the audio (don't await yet)
-      const audioReadyPromise = playAyahAudio(globalAyahNumber);
-
-      // 2. Display the verse text (which starts the animation)
+      // 1. Display the verse text (which starts the animation)
       await displayVerse(sNum, aNum, verseData);
 
-      // 3. Now wait for audio to be ready
-      await audioReadyPromise;
-
-      // 4. If autoplay is intended, start playback now that audio is ready and animation has started
+      // 2. Only load and play audio if user was previously playing
       if (wasPlayingBeforeNavigation) {
-        console.log(`[Local] Attempting to autoplay now that audio is ready.`);
+        console.log(`[Local] User was playing audio, loading and autoplaying.`);
+        const audioReadyPromise = playAyahAudio(globalAyahNumber);
+        await audioReadyPromise;
         playAudio();
       } else {
-        updatePlayPauseButton(true); // Show play button if not autoplaying
+        console.log(`[Local] User was not playing audio, skipping audio loading to save bandwidth.`);
+        updatePlayPauseButton(true); // Show play button
+        // Clear any previous audio source to prevent unintended loading
+        const audioPlayerElement = document.getElementById('ayah-audio-player');
+        if (audioPlayerElement instanceof HTMLAudioElement) {
+          audioPlayerElement.src = '';
+        }
       }
       
-      // After text transition and current audio is ready,
-      // we'll preload the next ayah's audio in the background
-      // but we need to wait until animations are completely finished
-      
-      // Check how long the animation takes to complete
-      // The reveal-word animation duration is 0.5s with variable delays based on word count
-      // We need to calculate a reasonable delay based on the verse length
-      const arabicWordCount = verseData.arabic.split(' ').length;
-      const englishWordCount = verseData.english.split(' ').length;
-      const maxWordCount = Math.max(arabicWordCount, englishWordCount);
-      
-      // Calculate a delay that accounts for the longest animation sequence
-      // Arabic delay is 0.08s per word, English is 0.05s per word, plus animation duration (0.5s)
-      // We add an extra buffer of 500ms to be safe
-      const arabicAnimationTime = (arabicWordCount * 0.08) + 0.5; 
-      const englishAnimationTime = (englishWordCount * 0.05) + 0.5;
-      const totalAnimationTime = Math.max(arabicAnimationTime, englishAnimationTime) * 1000 + 500;
-      
-      console.log(`Scheduling preload after ${totalAnimationTime}ms (${maxWordCount} words)`);
-      
-      setTimeout(() => {
-        console.log('Animation should be complete, preloading next ayah...');
-        preloadNextAyah(globalAyahNumber);
-      }, totalAnimationTime); // Dynamic delay based on verse length
+      // Preloading code removed
       
     } catch (error) {
       console.error("[Local] Error handling audio playback:", error);
@@ -205,27 +184,10 @@ export async function loadVerse(surahNumber, ayahNumber) {
     updatePlayPauseButton(true); // Ensure play button shown on error
   }
   
-  // Clean up older preloaded audio (keep only 3 most recent)
-  cleanupPreloadedAudio(3);
+  // Preloading code removed
 }
 
-/**
- * Preloads the audio for the next Ayah after the current one
- * @param {number} currentGlobalAyahNumber The current global Ayah number
- */
-function preloadNextAyah(currentGlobalAyahNumber) {
-  const MAX_AYAH_NUMBER = 6236;
-  // Don't preload if we're at the last Ayah
-  if (currentGlobalAyahNumber >= MAX_AYAH_NUMBER) return;
-  
-  const nextGlobalAyah = currentGlobalAyahNumber + 1;
-  console.log(`Preloading next ayah: ${nextGlobalAyah}`);
-  
-  // Preload in the background (don't wait for it to complete)
-  preloadAyahAudio(nextGlobalAyah).catch(err => {
-    console.warn(`Error preloading next ayah ${nextGlobalAyah}:`, err);
-  });
-}
+// Preloading function removed
 
 /**
  * Legacy function wrapper around loadVerse.

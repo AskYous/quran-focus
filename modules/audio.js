@@ -1,6 +1,6 @@
 import { loadAndDisplayAyah } from '../script.js'; // Main script handles loading logic
 import { trackAudioPause, trackAudioPlay } from './analytics.js'; // Import analytics tracking
-import { getPreloadedAudio, isAyahAudioPreloaded } from './preload.js'; // Import preloading utilities
+// Preloading removed
 import { currentAyahNumber, setWasPlayingBeforeNavigation } from './state.js';
 import { calculateSurahAndAyah, padNumber } from './utils.js';
 
@@ -44,92 +44,49 @@ export function updatePlayPauseButton(showPlay) {
  * @returns {Promise<void>} Promise that resolves when audio can play or on error/timeout.
  */
 export function playAyahAudio(ayahNumber) {
+  const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(ayahNumber);
+  const paddedSurah = padNumber(surahNumber, 3);
+  const paddedAyah = padNumber(ayahWithinSurah, 3);
+  const audioURL = `https://everyayah.com/data/khalefa_al_tunaiji_64kbps/${paddedSurah}${paddedAyah}.mp3`;
+
   const audioPlayerElement = document.getElementById('ayah-audio-player');
   if (!(audioPlayerElement instanceof HTMLAudioElement)) {
     console.error('Audio player element not found or invalid.');
     return Promise.resolve();
   }
   const audioPlayer = audioPlayerElement;
-  
-  // Check if we have this ayah preloaded
-  const preloadedAudio = isAyahAudioPreloaded(ayahNumber) ? getPreloadedAudio(ayahNumber) : null;
-  
-  if (preloadedAudio) {
-    console.log(`Using preloaded audio for ayah ${ayahNumber}`);
-    // Set the preloaded audio's source to the main player
-    audioPlayer.src = preloadedAudio.src;
-    updatePlayPauseButton(true); // Default to showing play
-    audioPlayer.load(); // Still need to load in the main player
-    
-    // Since we had it preloaded, it should load faster
-    return new Promise((resolve) => {
-      let resolved = false;
-      const timeoutId = setTimeout(() => {
-        if (!resolved) {
-          console.warn(`Even preloaded audio ${ayahNumber} timed out loading.`);
-          resolved = true;
-          resolve(); // Resolve even on timeout
-        }
-      }, 3000); // Shorter timeout for preloaded audio
+  audioPlayer.src = audioURL;
+  updatePlayPauseButton(true); // Default to showing play
+  audioPlayer.load();
 
-      audioPlayer.oncanplaythrough = () => {
-        if (!resolved) {
-          clearTimeout(timeoutId);
-          audioPlayer.oncanplaythrough = null;
-          resolved = true;
-          resolve();
-        }
-      };
-      audioPlayer.onerror = () => {
-        if (!resolved) {
-          clearTimeout(timeoutId);
-          console.error(`Error with preloaded audio ${ayahNumber}`);
-          audioPlayer.onerror = null;
-          resolved = true;
-          resolve(); // Resolve anyway
-        }
-      };
-    });
-  } else {
-    // Standard loading path for non-preloaded audio
-    const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(ayahNumber);
-    const paddedSurah = padNumber(surahNumber, 3);
-    const paddedAyah = padNumber(ayahWithinSurah, 3);
-    const audioURL = `https://everyayah.com/data/khalefa_al_tunaiji_64kbps/${paddedSurah}${paddedAyah}.mp3`;
+  return new Promise((resolve) => {
+    let resolved = false;
+    const timeoutId = setTimeout(() => {
+      if (!resolved) {
+        console.warn(`Audio ${ayahNumber} timed out loading.`);
+        resolved = true;
+        resolve(); // Resolve even on timeout
+      }
+    }, 5000); // Increased timeout
 
-    audioPlayer.src = audioURL;
-    updatePlayPauseButton(true); // Default to showing play
-    audioPlayer.load();
-
-    return new Promise((resolve) => {
-      let resolved = false;
-      const timeoutId = setTimeout(() => {
-        if (!resolved) {
-          console.warn(`Audio ${ayahNumber} timed out loading.`);
-          resolved = true;
-          resolve(); // Resolve even on timeout
-        }
-      }, 5000); // Increased timeout for standard loading
-
-      audioPlayer.oncanplaythrough = () => {
-        if (!resolved) {
-          clearTimeout(timeoutId);
-          audioPlayer.oncanplaythrough = null;
-          resolved = true;
-          resolve();
-        }
-      };
-      audioPlayer.onerror = () => {
-        if (!resolved) {
-          clearTimeout(timeoutId);
-          console.error(`Error loading audio ${ayahNumber}`);
-          audioPlayer.onerror = null;
-          resolved = true;
-          resolve(); // Resolve anyway
-        }
-      };
-    });
-  }
+    audioPlayer.oncanplaythrough = () => {
+      if (!resolved) {
+        clearTimeout(timeoutId);
+        audioPlayer.oncanplaythrough = null;
+        resolved = true;
+        resolve();
+      }
+    };
+    audioPlayer.onerror = () => {
+      if (!resolved) {
+        clearTimeout(timeoutId);
+        console.error(`Error loading audio ${ayahNumber}`);
+        audioPlayer.onerror = null;
+        resolved = true;
+        resolve(); // Resolve anyway
+      }
+    };
+  });
 }
 
 /**
@@ -154,11 +111,32 @@ export function togglePlayPause() {
   if (audioPlayer.paused) {
     // Check if src is missing, points to the page itself (initial state), or is empty
     if (!audioPlayer.src || audioPlayer.src === window.location.href || audioPlayer.src === '') {
-      console.log("No valid audio source, attempting to load current ayah first.");
-      loadAndDisplayAyah(currentAyahNumber).then(() => {
-        // Playback might be handled by loadVerse, but trigger feedback on intent
-        triggerPlayFeedbackAnimation();
-      }).catch(err => console.error("Error loading ayah on toggle play:", err));
+      console.log("No valid audio source, loading current ayah audio on demand.");
+      
+      // First check if we need to load the verse text/data
+      const arabicTextElement = document.getElementById('arabic-text');
+      if (!arabicTextElement || !arabicTextElement.textContent) {
+        // We need to load the entire verse
+        loadAndDisplayAyah(currentAyahNumber).then(() => {
+          // Playback is handled by loadVerse on autoplay flag
+          triggerPlayFeedbackAnimation();
+        }).catch(err => console.error("Error loading ayah on toggle play:", err));
+      } else {
+        // We have the verse displayed, but need to load audio on demand
+        console.log("Verse text is displayed, now loading audio on demand.");
+        triggerPlayFeedbackAnimation(); // Give immediate feedback
+        
+        // Set loading state
+        updatePlayPauseButton(false); // Show pause icon during loading for better UX
+        
+        // Load audio and play when ready
+        playAyahAudio(currentAyahNumber).then(() => {
+          playAudio(); // This will handle actually playing the audio
+        }).catch(err => {
+          console.error("Error loading audio on demand:", err);
+          updatePlayPauseButton(true); // Reset to play button on error
+        });
+      }
     } else {
       playAudio(); // Play existing source (playAudio will trigger feedback)
     }
