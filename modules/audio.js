@@ -1,5 +1,6 @@
 import { loadAndDisplayAyah } from '../script.js'; // Main script handles loading logic
 import { trackAudioPause, trackAudioPlay } from './analytics.js'; // Import analytics tracking
+import { getPreloadedAudio, isAyahAudioPreloaded } from './preload.js'; // Import preloading utilities
 import { currentAyahNumber, setWasPlayingBeforeNavigation } from './state.js';
 import { calculateSurahAndAyah, padNumber } from './utils.js';
 
@@ -43,49 +44,92 @@ export function updatePlayPauseButton(showPlay) {
  * @returns {Promise<void>} Promise that resolves when audio can play or on error/timeout.
  */
 export function playAyahAudio(ayahNumber) {
-  const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(ayahNumber);
-  const paddedSurah = padNumber(surahNumber, 3);
-  const paddedAyah = padNumber(ayahWithinSurah, 3);
-  const audioURL = `https://everyayah.com/data/khalefa_al_tunaiji_64kbps/${paddedSurah}${paddedAyah}.mp3`;
-
   const audioPlayerElement = document.getElementById('ayah-audio-player');
   if (!(audioPlayerElement instanceof HTMLAudioElement)) {
     console.error('Audio player element not found or invalid.');
     return Promise.resolve();
   }
   const audioPlayer = audioPlayerElement;
-  audioPlayer.src = audioURL;
-  updatePlayPauseButton(true); // Default to showing play
-  audioPlayer.load();
+  
+  // Check if we have this ayah preloaded
+  const preloadedAudio = isAyahAudioPreloaded(ayahNumber) ? getPreloadedAudio(ayahNumber) : null;
+  
+  if (preloadedAudio) {
+    console.log(`Using preloaded audio for ayah ${ayahNumber}`);
+    // Set the preloaded audio's source to the main player
+    audioPlayer.src = preloadedAudio.src;
+    updatePlayPauseButton(true); // Default to showing play
+    audioPlayer.load(); // Still need to load in the main player
+    
+    // Since we had it preloaded, it should load faster
+    return new Promise((resolve) => {
+      let resolved = false;
+      const timeoutId = setTimeout(() => {
+        if (!resolved) {
+          console.warn(`Even preloaded audio ${ayahNumber} timed out loading.`);
+          resolved = true;
+          resolve(); // Resolve even on timeout
+        }
+      }, 3000); // Shorter timeout for preloaded audio
 
-  return new Promise((resolve) => {
-    let resolved = false;
-    const timeoutId = setTimeout(() => {
-      if (!resolved) {
-        console.warn(`Audio ${ayahNumber} timed out loading.`);
-        resolved = true;
-        resolve(); // Resolve even on timeout
-      }
-    }, 5000); // Increased timeout
+      audioPlayer.oncanplaythrough = () => {
+        if (!resolved) {
+          clearTimeout(timeoutId);
+          audioPlayer.oncanplaythrough = null;
+          resolved = true;
+          resolve();
+        }
+      };
+      audioPlayer.onerror = () => {
+        if (!resolved) {
+          clearTimeout(timeoutId);
+          console.error(`Error with preloaded audio ${ayahNumber}`);
+          audioPlayer.onerror = null;
+          resolved = true;
+          resolve(); // Resolve anyway
+        }
+      };
+    });
+  } else {
+    // Standard loading path for non-preloaded audio
+    const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(ayahNumber);
+    const paddedSurah = padNumber(surahNumber, 3);
+    const paddedAyah = padNumber(ayahWithinSurah, 3);
+    const audioURL = `https://everyayah.com/data/khalefa_al_tunaiji_64kbps/${paddedSurah}${paddedAyah}.mp3`;
 
-    audioPlayer.oncanplaythrough = () => {
-      if (!resolved) {
-        clearTimeout(timeoutId);
-        audioPlayer.oncanplaythrough = null;
-        resolved = true;
-        resolve();
-      }
-    };
-    audioPlayer.onerror = () => {
-      if (!resolved) {
-        clearTimeout(timeoutId);
-        console.error(`Error loading audio ${ayahNumber}`);
-        audioPlayer.onerror = null;
-        resolved = true;
-        resolve(); // Resolve anyway
-      }
-    };
-  });
+    audioPlayer.src = audioURL;
+    updatePlayPauseButton(true); // Default to showing play
+    audioPlayer.load();
+
+    return new Promise((resolve) => {
+      let resolved = false;
+      const timeoutId = setTimeout(() => {
+        if (!resolved) {
+          console.warn(`Audio ${ayahNumber} timed out loading.`);
+          resolved = true;
+          resolve(); // Resolve even on timeout
+        }
+      }, 5000); // Increased timeout for standard loading
+
+      audioPlayer.oncanplaythrough = () => {
+        if (!resolved) {
+          clearTimeout(timeoutId);
+          audioPlayer.oncanplaythrough = null;
+          resolved = true;
+          resolve();
+        }
+      };
+      audioPlayer.onerror = () => {
+        if (!resolved) {
+          clearTimeout(timeoutId);
+          console.error(`Error loading audio ${ayahNumber}`);
+          audioPlayer.onerror = null;
+          resolved = true;
+          resolve(); // Resolve anyway
+        }
+      };
+    });
+  }
 }
 
 /**

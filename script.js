@@ -6,6 +6,7 @@ import { playAudio, playAyahAudio, togglePlayPause, updatePlayPauseButton } from
 import { trackNavigation, trackVerseLoad } from './modules/analytics.js'; // Import analytics tracking
 import { initializeApp } from './modules/init.js';
 import { limitCacheSize } from './modules/navigation.js';
+import { preloadAyahAudio, cleanupPreloadedAudio } from './modules/preload.js';
 import {
   // castSession,
   currentAyahNumber,
@@ -170,6 +171,32 @@ export async function loadVerse(surahNumber, ayahNumber) {
       } else {
         updatePlayPauseButton(true); // Show play button if not autoplaying
       }
+      
+      // After text transition and current audio is ready,
+      // we'll preload the next ayah's audio in the background
+      // but we need to wait until animations are completely finished
+      
+      // Check how long the animation takes to complete
+      // The reveal-word animation duration is 0.5s with variable delays based on word count
+      // We need to calculate a reasonable delay based on the verse length
+      const arabicWordCount = verseData.arabic.split(' ').length;
+      const englishWordCount = verseData.english.split(' ').length;
+      const maxWordCount = Math.max(arabicWordCount, englishWordCount);
+      
+      // Calculate a delay that accounts for the longest animation sequence
+      // Arabic delay is 0.08s per word, English is 0.05s per word, plus animation duration (0.5s)
+      // We add an extra buffer of 500ms to be safe
+      const arabicAnimationTime = (arabicWordCount * 0.08) + 0.5; 
+      const englishAnimationTime = (englishWordCount * 0.05) + 0.5;
+      const totalAnimationTime = Math.max(arabicAnimationTime, englishAnimationTime) * 1000 + 500;
+      
+      console.log(`Scheduling preload after ${totalAnimationTime}ms (${maxWordCount} words)`);
+      
+      setTimeout(() => {
+        console.log('Animation should be complete, preloading next ayah...');
+        preloadNextAyah(globalAyahNumber);
+      }, totalAnimationTime); // Dynamic delay based on verse length
+      
     } catch (error) {
       console.error("[Local] Error handling audio playback:", error);
       updatePlayPauseButton(true); // Ensure play button shown on error
@@ -177,13 +204,27 @@ export async function loadVerse(surahNumber, ayahNumber) {
   } else {
     updatePlayPauseButton(true); // Ensure play button shown on error
   }
+  
+  // Clean up older preloaded audio (keep only 3 most recent)
+  cleanupPreloadedAudio(3);
+}
 
-  // Preload next verse - REMOVED
-  // if (nextVersePreloader) clearTimeout(nextVersePreloader);
-  // const timeoutId = setTimeout(() => {
-  //   preloadNextVerse(sNum, aNum);
-  // }, 750);
-  // setNextVersePreloader(timeoutId);
+/**
+ * Preloads the audio for the next Ayah after the current one
+ * @param {number} currentGlobalAyahNumber The current global Ayah number
+ */
+function preloadNextAyah(currentGlobalAyahNumber) {
+  const MAX_AYAH_NUMBER = 6236;
+  // Don't preload if we're at the last Ayah
+  if (currentGlobalAyahNumber >= MAX_AYAH_NUMBER) return;
+  
+  const nextGlobalAyah = currentGlobalAyahNumber + 1;
+  console.log(`Preloading next ayah: ${nextGlobalAyah}`);
+  
+  // Preload in the background (don't wait for it to complete)
+  preloadAyahAudio(nextGlobalAyah).catch(err => {
+    console.warn(`Error preloading next ayah ${nextGlobalAyah}:`, err);
+  });
 }
 
 /**
