@@ -1,10 +1,12 @@
 import { loadVerse } from '../script.js'; // Needed for handleAyahChange
 import { trackPageHidden, trackSelection } from './analytics.js'; // Import analytics tracking
-import { togglePlayPause, updatePlayPauseButton } from './audio.js'; // Removed showAudioControls, resetAudioHideTimeout
+import { togglePlayPause, updatePlayPauseButton } from './audio.js';
+import { onSurahAudioEnded } from './audioSurah.js';
 import { navigate } from './navigation.js';
 import { quranData } from './quranData.js';
-import { setCurrentAyahNumber, setIsUserInteractingWithSettings } from './state.js'; // Removed setIsUserInteractingWithAudio
-import { populateAyahSelect, resetSettingsBarHideTimeout, showSettingsBar, toggleSettingsBar, updateGlowElements } from './ui.js'; // Added toggleSettingsBar
+import { isSettingsUIOpen } from './settings.js';
+import { playbackMode, setCurrentAyahNumber, setIsUserInteractingWithSettings } from './state.js';
+import { populateAyahSelect, resetSettingsBarHideTimeout, showSettingsBar, toggleSettingsBar, updateGlowElements } from './ui.js';
 import { calculateGlobalAyahNumber, saveSelectionsToLocalStorage } from './utils.js';
 
 /**
@@ -157,6 +159,11 @@ export function setupEventListeners() {
     const now = Date.now();
     const timeSinceLastTap = now - lastTap;
 
+    // Ignore clicks when settings drawer or search overlay is open
+    if (isSettingsUIOpen()) {
+      return;
+    }
+
     // Ignore clicks inside the settings bar itself
     const settingsBar = document.getElementById('top-settings-bar');
     // Check if the target is a Node and within the settings bar
@@ -198,13 +205,25 @@ export function setupEventListeners() {
     lastTap = now;
   });
 
-  // Handle audio ending: navigate to next ayah
+  // Handle audio ending
   const audioElement = document.getElementById('ayah-audio-player');
   if (audioElement instanceof HTMLAudioElement) {
     audioElement.addEventListener('ended', () => {
-      console.log('Audio ended, navigating to next ayah');
-      updatePlayPauseButton(true); // Update UI, though button isn't visible
-      navigate('next');
+      console.log('Audio ended');
+      updatePlayPauseButton(true);
+
+      if (playbackMode === 'flowing') {
+        // Surah finished — advance to next surah
+        onSurahAudioEnded();
+        const surahSelect = document.getElementById('surah-select');
+        if (surahSelect instanceof HTMLSelectElement) {
+          const currentSurah = parseInt(surahSelect.value);
+          const nextSurah = currentSurah >= 114 ? 1 : currentSurah + 1;
+          loadVerse(nextSurah, 1).catch(err => console.error('Error advancing surah:', err));
+        }
+      } else {
+        navigate('next');
+      }
     });
   } else {
     console.warn("Audio element not found for 'ended' listener attachment.");

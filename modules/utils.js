@@ -106,4 +106,29 @@ export function loadSelectionsFromLocalStorage() {
 export function getSurahAyahCount(surahNum) {
   const surah = quranData.find(s => s.number === surahNum);
   return surah ? surah.ayahCount : 0;
+}
+
+// --- Settings Persistence ---
+
+export function saveSettingsToLocalStorage(reciterId, translationId, playbackMode) {
+  try {
+    localStorage.setItem('quranFocusSpace_reciter', reciterId);
+    localStorage.setItem('quranFocusSpace_translation', translationId);
+    localStorage.setItem('quranFocusSpace_playbackMode', playbackMode);
+  } catch (error) {
+    console.error('Error saving settings to local storage:', error);
+  }
+}
+
+export function loadSettingsFromLocalStorage() {
+  try {
+    return {
+      reciterId: localStorage.getItem('quranFocusSpace_reciter') || 'khalefa_al_tunaiji_64kbps',
+      translationId: localStorage.getItem('quranFocusSpace_translation') || 'en.hilali',
+      playbackMode: localStorage.getItem('quranFocusSpace_playbackMode') || 'ayah'
+    };
+  } catch (error) {
+    console.error('Error loading settings from local storage:', error);
+    return { reciterId: 'khalefa_al_tunaiji_64kbps', translationId: 'en.hilali', playbackMode: 'ayah' };
+  }
 } 

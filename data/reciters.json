@@ -1,0 +1,815 @@
+[
+  {
+    "id": "khalefa_al_tunaiji_64kbps",
+    "name": "Khalefa Al-Tunaiji",
+    "nameArabic": "خليفة الطنيجي",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/khalefa_al_tunaiji_64kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/khalifah_taniji/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 161
+  },
+  {
+    "id": "Alafasy_128kbps",
+    "name": "Mishary Rashid Alafasy",
+    "nameArabic": "مشاري راشد العفاسي",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Alafasy_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/mishaari_raashid_al_3afaasee/complete/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 7
+  },
+  {
+    "id": "Alafasy_64kbps",
+    "name": "Mishary Rashid Alafasy (64kbps)",
+    "nameArabic": "مشاري راشد العفاسي - 64kbps",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Alafasy_64kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/mishaari_raashid_al_3afaasee/complete/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 7
+  },
+  {
+    "id": "Abdurrahmaan_As-Sudais_192kbps",
+    "name": "Abdul Rahman Al-Sudais",
+    "nameArabic": "عبدالرحمن السديس",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Abdurrahmaan_As-Sudais_192kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/abdurrahmaan_as-sudais/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 3
+  },
+  {
+    "id": "Abdurrahmaan_As-Sudais_64kbps",
+    "name": "Abdul Rahman Al-Sudais (64kbps)",
+    "nameArabic": "عبدالرحمن السديس - 64kbps",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Abdurrahmaan_As-Sudais_64kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/abdurrahmaan_as-sudais/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 3
+  },
+  {
+    "id": "Saud_Ash-Shuraym_128kbps",
+    "name": "Saud Al-Shuraim",
+    "nameArabic": "سعود الشريم",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Saood_ash-Shuraym_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/sa3ud_ash-shuraym/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 10
+  },
+  {
+    "id": "Saud_Ash-Shuraym_64kbps",
+    "name": "Saud Al-Shuraim (64kbps)",
+    "nameArabic": "سعود الشريم - 64kbps",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Saood_ash-Shuraym_64kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/sa3ud_ash-shuraym/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 10
+  },
+  {
+    "id": "Abdul_Basit_Murattal_64kbps",
+    "name": "Abdul Basit Abdul Samad (Murattal)",
+    "nameArabic": "عبدالباسط عبدالصمد - مرتل",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Abdul_Basit_Murattal_64kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/abdul_baset/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 2
+  },
+  {
+    "id": "Abdul_Basit_Mujawwad_128kbps",
+    "name": "Abdul Basit Abdul Samad (Mujawwad)",
+    "nameArabic": "عبدالباسط عبدالصمد - مجود",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Abdul_Basit_Mujawwad_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/abdul_baset/mujawwad/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 1
+  },
+  {
+    "id": "AbdulSamad_64kbps_QuranExplorer",
+    "name": "Abdul Basit Abdul Samad (QuranExplorer)",
+    "nameArabic": "عبدالباسط عبدالصمد - QuranExplorer",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/AbdulSamad_64kbps_QuranExplorer.Com/",
+        "format": "{surah3}{ayah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Husary_128kbps",
+    "name": "Mahmoud Khalil Al-Husary",
+    "nameArabic": "محمود خليل الحصري",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Husary_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/mahmoud_khalil_al-husary/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 6
+  },
+  {
+    "id": "Husary_64kbps",
+    "name": "Mahmoud Khalil Al-Husary (64kbps)",
+    "nameArabic": "محمود خليل الحصري - 64kbps",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Husary_64kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/mahmoud_khalil_al-husary/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 6
+  },
+  {
+    "id": "Husary_Muallim_128kbps",
+    "name": "Mahmoud Khalil Al-Husary (Muallim)",
+    "nameArabic": "محمود خليل الحصري - معلم",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Husary_Muallim_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 12
+  },
+  {
+    "id": "Minshawy_Murattal_128kbps",
+    "name": "Mohamed Siddiq El-Minshawi (Murattal)",
+    "nameArabic": "محمد صديق المنشاوي - مرتل",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Minshawy_Murattal_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/muhammad_siddeeq_al-minshawi/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 9
+  },
+  {
+    "id": "Minshawy_Mujawwad_64kbps",
+    "name": "Mohamed Siddiq El-Minshawi (Mujawwad)",
+    "nameArabic": "محمد صديق المنشاوي - مجود",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Minshawy_Mujawwad_64kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/muhammad_siddeeq_al-minshawi/mujawwad/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 9
+  },
+  {
+    "id": "MauroAlMuaiqly_64kbps",
+    "name": "Maher Al-Muaiqly",
+    "nameArabic": "ماهر المعيقلي",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Maher_AlMuaiqly_64kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/maher_al_muaiqly/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Saad_Al_Ghamdi_64kbps",
+    "name": "Saad Al-Ghamdi",
+    "nameArabic": "سعد الغامدي",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Ghamadi_40kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/sa3d_al-ghaamidi/complete/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Hani_Rifai_64kbps",
+    "name": "Hani Ar-Rifai",
+    "nameArabic": "هاني الرفاعي",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Hani_Rifai_64kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/hani_ar-rifai/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 5
+  },
+  {
+    "id": "Abu_Bakr_Ash-Shaatree_64kbps",
+    "name": "Abu Bakr Al-Shatri",
+    "nameArabic": "أبو بكر الشاطري",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Abu_Bakr_Ash-Shaatree_64kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/abu_bakr_ash-shaatree/complete/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 4
+  },
+  {
+    "id": "Ahmed_ibn_Ali_al-Ajamy_64kbps_QuranExplorer",
+    "name": "Ahmed Al-Ajamy",
+    "nameArabic": "أحمد العجمي",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Ahmed_ibn_Ali_al-Ajamy_64kbps_QuranExplorer.Com/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/ahmed_ibn_ali_al-ajamy/complete/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Hudhaify_64kbps",
+    "name": "Ali Al-Hudhaify",
+    "nameArabic": "علي الحذيفي",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Hudhaify_64kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/ali_al-hudhaify/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Hudhaify_128kbps",
+    "name": "Ali Al-Hudhaify (128kbps)",
+    "nameArabic": "علي الحذيفي - 128kbps",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Hudhaify_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/ali_al-hudhaify/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Muhammad_Ayyoub_64kbps",
+    "name": "Muhammad Ayyoub",
+    "nameArabic": "محمد أيوب",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Muhammad_Ayyoub_64kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/muhammad_ayyoob/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Muhammad_Ayyoub_128kbps",
+    "name": "Muhammad Ayyoub (128kbps)",
+    "nameArabic": "محمد أيوب - 128kbps",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Muhammad_Ayyoub_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/muhammad_ayyoob/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Yasser_Ad-Dussary_64kbps",
+    "name": "Yasser Ad-Dossari",
+    "nameArabic": "ياسر الدوسري",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/yasser_ad-dussary/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 97
+  },
+  {
+    "id": "Yasser_Ad-Dussary_128kbps",
+    "name": "Yasser Ad-Dossari (128kbps)",
+    "nameArabic": "ياسر الدوسري - 128kbps",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/yasser_ad-dussary/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 97
+  },
+  {
+    "id": "Nasser_Alqatami_64kbps",
+    "name": "Nasser Al-Qatami",
+    "nameArabic": "ناصر القطامي",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Nasser_Alqatami_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/nasser_alqatami/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Abdullah_Basfar_64kbps",
+    "name": "Abdullah Basfar",
+    "nameArabic": "عبدالله بصفر",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Abdullah_Basfar_64kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/abdullah_basfar/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Abdullah_Basfar_32kbps",
+    "name": "Abdullah Basfar (32kbps)",
+    "nameArabic": "عبدالله بصفر - 32kbps",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Abdullah_Basfar_32kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/abdullah_basfar/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Ibrahim_Akhdar_32kbps",
+    "name": "Ibrahim Al-Akhdar",
+    "nameArabic": "إبراهيم الأخضر",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Ibrahim_Akhdar_32kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/ibrahim_al-akhdar/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Fares_Abbad_64kbps",
+    "name": "Fares Abbad",
+    "nameArabic": "فارس عباد",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Fares_Abbad_64kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/fares_abbad/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Muhammad_Jibreel_64kbps",
+    "name": "Muhammad Jibreel",
+    "nameArabic": "محمد جبريل",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Muhammad_Jibreel_64kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/muhammad_jibreel/complete/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Muhammad_Jibreel_128kbps",
+    "name": "Muhammad Jibreel (128kbps)",
+    "nameArabic": "محمد جبريل - 128kbps",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Muhammad_Jibreel_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/muhammad_jibreel/complete/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Ahmed_Neana_128kbps",
+    "name": "Ahmed Neana",
+    "nameArabic": "أحمد نعينع",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Ahmed_Neana_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Sudais_Shuraym_128kbps",
+    "name": "Al-Sudais & Al-Shuraim",
+    "nameArabic": "السديس والشريم",
+    "sources": {},
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Abdullaah_3awwaad_Al-Juhanee_128kbps",
+    "name": "Abdullah Awad Al-Juhani",
+    "nameArabic": "عبدالله عواد الجهني",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Abdullaah_3awwaad_Al-Juhaynee_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/abdullaah_3awwaad_al-juhanee/complete/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Ali_Jaber_64kbps",
+    "name": "Ali Jaber",
+    "nameArabic": "علي جابر",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Ali_Jaber_64kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/ali_jaber/complete/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Salaah_AbdulRahman_Bukhatir_128kbps",
+    "name": "Salah Abdul Rahman Bukhatir",
+    "nameArabic": "صلاح عبدالرحمن بوخاطر",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Salaah_AbdulRahman_Bukhatir_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Salah_Al_Budair_128kbps",
+    "name": "Salah Al-Budair",
+    "nameArabic": "صلاح البدير",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Salah_Al_Budair_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Abdullah_Matroud_128kbps",
+    "name": "Abdullah Al-Matroud",
+    "nameArabic": "عبدالله المطرود",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Abdullah_Matroud_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Mohammad_al_Tablaway_128kbps",
+    "name": "Mohammad Al-Tablaway",
+    "nameArabic": "محمد الطبلاوي",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Mohammad_al_Tablaway_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Muhammad_AbdulKareem_128kbps",
+    "name": "Muhammad Abdul Kareem",
+    "nameArabic": "محمد عبدالكريم",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Muhammad_AbdulKareem_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Akram_AlAlaqimy_128kbps",
+    "name": "Akram Al-Alaqimy",
+    "nameArabic": "أكرم العلاقمي",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Akram_AlAlaqimy_128kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Muhsin_Al_Qasim_192kbps",
+    "name": "Muhsin Al-Qasim",
+    "nameArabic": "محسن القاسم",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Muhsin_Al_Qasim_192kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Parhizgar_48kbps",
+    "name": "Shahriar Parhizgar",
+    "nameArabic": "شهريار پرهيزگار",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Parhizgar_48kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Ayman_Sowaid_64kbps",
+    "name": "Ayman Sowaid",
+    "nameArabic": "أيمن سويد",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Ayman_Sowaid_64kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Ghamadi_40kbps",
+    "name": "Saad Al-Ghamdi (40kbps)",
+    "nameArabic": "سعد الغامدي - 40kbps",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Ghamadi_40kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/sa3d_al-ghaamidi/complete/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Menshawi_16kbps",
+    "name": "Mohamed Siddiq El-Minshawi (16kbps)",
+    "nameArabic": "محمد صديق المنشاوي - 16kbps",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Menshawi_16kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      },
+      "surah": {
+        "provider": "quranicaudio",
+        "baseUrl": "https://download.quranicaudio.com/qdc/muhammad_siddeeq_al-minshawi/murattal/",
+        "format": "{surah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": 9
+  },
+  {
+    "id": "Abdel_Fattah_Barakat_128kbps",
+    "name": "Abdel Fattah Barakat",
+    "nameArabic": "عبدالفتاح بركات",
+    "sources": {},
+    "quranicAudioRecitationId": null
+  },
+  {
+    "id": "Karim_Mansoori_40kbps",
+    "name": "Karim Mansoori",
+    "nameArabic": "كريم منصوري",
+    "sources": {
+      "ayahByAyah": {
+        "provider": "everyayah",
+        "baseUrl": "https://everyayah.com/data/Karim_Mansoori_40kbps/",
+        "format": "{surah3}{ayah3}.mp3"
+      }
+    },
+    "quranicAudioRecitationId": null
+  }
+]

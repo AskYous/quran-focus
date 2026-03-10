@@ -1,19 +1,32 @@
-import { loadAndDisplayAyah } from '../script.js'; // Main script handles loading logic
-import { trackAudioPause, trackAudioPlay } from './analytics.js'; // Import analytics tracking
-// Preloading removed
-import { currentAyahNumber, setWasPlayingBeforeNavigation } from './state.js';
-import { calculateSurahAndAyah, padNumber } from './utils.js';
+import { loadAndDisplayAyah } from '../script.js';
+import { trackAudioPause, trackAudioPlay } from './analytics.js';
+import { loadAyahAudio, setRecitersData as setAyahRecitersData } from './audioAyah.js';
+import {
+  getCurrentSurahNumber, handleTimeUpdate, loadSurahAudio,
+  seekToAyahInSurah, setOnAyahChangeCallback,
+  setRecitersData as setSurahRecitersData, supportsFlowingMode
+} from './audioSurah.js';
+import { currentAyahNumber, playbackMode, setWasPlayingBeforeNavigation } from './state.js';
+import { calculateSurahAndAyah } from './utils.js';
 
 /**
- * Helper function to apply the visual feedback animation.
+ * Initialize audio module with reciters data.
  */
+export function initAudio(recitersData) {
+  setAyahRecitersData(recitersData);
+  setSurahRecitersData(recitersData);
+}
+
+// Re-export for external use
+export { setOnAyahChangeCallback, getCurrentSurahNumber, seekToAyahInSurah, supportsFlowingMode };
+
 function triggerPlayFeedbackAnimation() {
   const arabicText = document.getElementById('arabic-text');
   const translationText = document.getElementById('translation-text');
 
   if (arabicText) {
     arabicText.classList.add('play-feedback-trigger');
-    setTimeout(() => arabicText.classList.remove('play-feedback-trigger'), 600); // Match animation duration
+    setTimeout(() => arabicText.classList.remove('play-feedback-trigger'), 600);
   }
   if (translationText) {
     translationText.classList.add('play-feedback-trigger');
@@ -23,7 +36,6 @@ function triggerPlayFeedbackAnimation() {
 
 /**
  * Updates the play/pause button UI.
- * @param {boolean} showPlay True to show play icon, false for pause.
  */
 export function updatePlayPauseButton(showPlay) {
   const playIcon = document.querySelector('.play-icon');
@@ -32,197 +44,141 @@ export function updatePlayPauseButton(showPlay) {
   if (playIcon instanceof HTMLElement && pauseIcon instanceof HTMLElement) {
     playIcon.style.display = showPlay ? 'block' : 'none';
     pauseIcon.style.display = showPlay ? 'none' : 'block';
-  } else {
-    console.warn('Play/pause icons not found or not HTMLElements.');
   }
 }
 
 /**
- * Loads the audio source for a given global Ayah number.
- * Does not play automatically.
- * @param {number} ayahNumber Global Ayah number.
- * @returns {Promise<void>} Promise that resolves when audio can play or on error/timeout.
+ * Loads audio for a given global ayah number using the active strategy.
  */
 export function playAyahAudio(ayahNumber) {
-  const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(ayahNumber);
-  const paddedSurah = padNumber(surahNumber, 3);
-  const paddedAyah = padNumber(ayahWithinSurah, 3);
-  const audioURL = `https://everyayah.com/data/khalefa_al_tunaiji_64kbps/${paddedSurah}${paddedAyah}.mp3`;
+  const audioPlayer = document.getElementById('ayah-audio-player');
+  if (!(audioPlayer instanceof HTMLAudioElement)) return Promise.resolve();
 
-  const audioPlayerElement = document.getElementById('ayah-audio-player');
-  if (!(audioPlayerElement instanceof HTMLAudioElement)) {
-    console.error('Audio player element not found or invalid.');
-    return Promise.resolve();
+  updatePlayPauseButton(true);
+
+  if (playbackMode === 'flowing' && supportsFlowingMode()) {
+    const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(ayahNumber);
+    const loadedSurah = getCurrentSurahNumber();
+
+    if (loadedSurah === surahNumber) {
+      // Same surah — just seek
+      seekToAyahInSurah(ayahWithinSurah, audioPlayer);
+      return Promise.resolve();
+    } else {
+      // Different surah — load new surah audio
+      return loadSurahAudio(surahNumber, audioPlayer, ayahWithinSurah).then(success => {
+        if (!success) {
+          // Fallback to ayah-by-ayah
+          return loadAyahAudio(ayahNumber, audioPlayer);
+        }
+      });
+    }
+  } else {
+    return loadAyahAudio(ayahNumber, audioPlayer);
   }
-  const audioPlayer = audioPlayerElement;
-  audioPlayer.src = audioURL;
-  updatePlayPauseButton(true); // Default to showing play
-  audioPlayer.load();
-
-  return new Promise((resolve) => {
-    let resolved = false;
-    const timeoutId = setTimeout(() => {
-      if (!resolved) {
-        console.warn(`Audio ${ayahNumber} timed out loading.`);
-        resolved = true;
-        resolve(); // Resolve even on timeout
-      }
-    }, 5000); // Increased timeout
-
-    audioPlayer.oncanplaythrough = () => {
-      if (!resolved) {
-        clearTimeout(timeoutId);
-        audioPlayer.oncanplaythrough = null;
-        resolved = true;
-        resolve();
-      }
-    };
-    audioPlayer.onerror = () => {
-      if (!resolved) {
-        clearTimeout(timeoutId);
-        console.error(`Error loading audio ${ayahNumber}`);
-        audioPlayer.onerror = null;
-        resolved = true;
-        resolve(); // Resolve anyway
-      }
-    };
-  });
 }
 
 /**
- * Toggles between playing and pausing audio, handling local and cast scenarios.
+ * Toggles between playing and pausing audio.
  */
 export function togglePlayPause() {
-  // @ts-ignore - Cast types are external
-  // if (castSession && castSession.getSessionState() === cast.framework.SessionState.SESSION_STARTED) {
-  //   // Casting session active - control remote player
-  //   // @ts-ignore
-  //   const remotePlayer = new cast.framework.RemotePlayer();
-  //   // @ts-ignore
-  //   const remotePlayerController = new cast.framework.RemotePlayerController(remotePlayer);
-  //   remotePlayerController.playOrPause();
-  //   // Button state updated by IS_PAUSED_CHANGED listener in cast.js
-  // } else {
-  // No casting session - control local player
-  const audioPlayerElement = document.getElementById('ayah-audio-player');
-  if (!(audioPlayerElement instanceof HTMLAudioElement)) return;
-  const audioPlayer = audioPlayerElement;
+  const audioPlayer = document.getElementById('ayah-audio-player');
+  if (!(audioPlayer instanceof HTMLAudioElement)) return;
 
   if (audioPlayer.paused) {
-    // Check if src is missing, points to the page itself (initial state), or is empty
     if (!audioPlayer.src || audioPlayer.src === window.location.href || audioPlayer.src === '') {
       console.log("No valid audio source, loading current ayah audio on demand.");
-      
-      // First check if we need to load the verse text/data
+
       const arabicTextElement = document.getElementById('arabic-text');
       if (!arabicTextElement || !arabicTextElement.textContent) {
-        // We need to load the entire verse
         loadAndDisplayAyah(currentAyahNumber).then(() => {
-          // Playback is handled by loadVerse on autoplay flag
           triggerPlayFeedbackAnimation();
         }).catch(err => console.error("Error loading ayah on toggle play:", err));
       } else {
-        // We have the verse displayed, but need to load audio on demand
-        console.log("Verse text is displayed, now loading audio on demand.");
-        triggerPlayFeedbackAnimation(); // Give immediate feedback
-        
-        // Set loading state
-        updatePlayPauseButton(false); // Show pause icon during loading for better UX
-        
-        // Load audio and play when ready
+        triggerPlayFeedbackAnimation();
+        updatePlayPauseButton(false);
         playAyahAudio(currentAyahNumber).then(() => {
-          playAudio(); // This will handle actually playing the audio
+          playAudio();
         }).catch(err => {
           console.error("Error loading audio on demand:", err);
-          updatePlayPauseButton(true); // Reset to play button on error
+          updatePlayPauseButton(true);
         });
       }
     } else {
-      playAudio(); // Play existing source (playAudio will trigger feedback)
+      playAudio();
     }
   } else {
     audioPlayer.pause();
     updatePlayPauseButton(true);
     setWasPlayingBeforeNavigation(false);
-    triggerPlayFeedbackAnimation(); // Feedback on pause
+    triggerPlayFeedbackAnimation();
 
-    // Track audio pause
     const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(currentAyahNumber);
     trackAudioPause(surahNumber, ayahWithinSurah);
   }
-  // }
 }
 
 /**
- * Plays the audio currently loaded in the local player.
+ * Plays the audio currently loaded in the player.
  */
 export function playAudio() {
-  const audioPlayerElement = document.getElementById('ayah-audio-player');
-  if (!(audioPlayerElement instanceof HTMLAudioElement)) {
-    console.log('Audio element not found or not an audio element.');
-    return;
-  }
-  const audioPlayer = audioPlayerElement;
+  const audioPlayer = document.getElementById('ayah-audio-player');
+  if (!(audioPlayer instanceof HTMLAudioElement)) return;
 
-  if (!audioPlayer.src || audioPlayer.src === window.location.href) {
-    console.log('No valid audio source to play');
-    return;
-  }
+  if (!audioPlayer.src || audioPlayer.src === window.location.href) return;
 
-  console.log('Attempting to play audio:', audioPlayer.src);
-
-  if (audioPlayer.readyState >= 3) {
+  const doPlay = () => {
     audioPlayer.play()
       .then(() => {
-        console.log('Audio playback started successfully');
         updatePlayPauseButton(false);
         setWasPlayingBeforeNavigation(true);
-        triggerPlayFeedbackAnimation(); // Feedback on play
+        triggerPlayFeedbackAnimation();
 
-        // Track audio play
         const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(currentAyahNumber);
         trackAudioPlay(surahNumber, ayahWithinSurah);
       })
       .catch(error => {
         console.error('Error playing audio:', error);
-        if (error.name === 'NotAllowedError') {
-          console.log('Playback prevented, possibly requires user interaction.');
-        }
         updatePlayPauseButton(true);
         setWasPlayingBeforeNavigation(false);
       });
+  };
+
+  if (audioPlayer.readyState >= 3) {
+    doPlay();
   } else {
-    console.log('Audio not ready, waiting for canplay event...');
-    audioPlayer.addEventListener('canplay', () => {
-      console.log('Audio is now ready, playing...');
-      audioPlayer.play()
-        .then(() => {
-          console.log('Audio playback started successfully after wait');
-          updatePlayPauseButton(false);
-          setWasPlayingBeforeNavigation(true);
-          triggerPlayFeedbackAnimation(); // Feedback on play
-
-          // Track audio play
-          const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(currentAyahNumber);
-          trackAudioPlay(surahNumber, ayahWithinSurah);
-        })
-        .catch(error => {
-          console.error('Error playing audio after wait:', error);
-          updatePlayPauseButton(true);
-          setWasPlayingBeforeNavigation(false);
-        });
-    }, { once: true });
-
+    audioPlayer.addEventListener('canplay', doPlay, { once: true });
     setTimeout(() => {
       if (audioPlayer.paused) {
-        console.warn('Audio never reached canplay state, play attempt timed out.');
         updatePlayPauseButton(true);
       }
-    }, 7000); // Increased timeout for play attempt
+    }, 7000);
   }
 }
 
 /**
- * Updates the play/pause button icon.
- * @param {boolean} showPlay True to show play icon, false to show pause icon.
+ * Sets up the timeupdate listener for flowing mode.
  */
+export function setupFlowingModeListener() {
+  const audioPlayer = document.getElementById('ayah-audio-player');
+  if (!(audioPlayer instanceof HTMLAudioElement)) return;
+
+  audioPlayer.addEventListener('timeupdate', () => {
+    if (playbackMode === 'flowing') {
+      handleTimeUpdate(audioPlayer);
+    }
+  });
+}
+
+/**
+ * Stops current audio and clears the source.
+ */
+export function stopAudio() {
+  const audioPlayer = document.getElementById('ayah-audio-player');
+  if (audioPlayer instanceof HTMLAudioElement) {
+    audioPlayer.pause();
+    audioPlayer.src = '';
+    updatePlayPauseButton(true);
+    setWasPlayingBeforeNavigation(false);
+  }
+}
