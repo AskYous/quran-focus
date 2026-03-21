@@ -3,7 +3,7 @@ import { trackAudioPause, trackAudioPlay } from './analytics.js';
 import { loadAyahAudio, setRecitersData as setAyahRecitersData } from './audioAyah.js';
 import {
   getCurrentSurahNumber, handleTimeUpdate, loadSurahAudio,
-  seekToAyahInSurah, setOnAyahChangeCallback,
+  onSurahAudioEnded, seekToAyahInSurah, setOnAyahChangeCallback,
   setRecitersData as setSurahRecitersData, supportsFlowingMode
 } from './audioSurah.js';
 import { currentAyahNumber, playbackMode, setWasPlayingBeforeNavigation } from './state.js';
@@ -181,4 +181,5 @@ export function stopAudio() {
     updatePlayPauseButton(true);
     setWasPlayingBeforeNavigation(false);
   }
+  onSurahAudioEnded();
 }

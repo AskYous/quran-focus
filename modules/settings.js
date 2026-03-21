@@ -1,7 +1,7 @@
-import { initAudio, stopAudio } from './audio.js';
+import { initAudio, playAudio, playAyahAudio, stopAudio } from './audio.js';
 import { fuzzySearch } from './search.js';
 import {
-  currentReciterId, currentTranslationId, playbackMode,
+  currentAyahNumber, currentReciterId, currentTranslationId, playbackMode,
   setCurrentReciterId, setCurrentTranslationId, setIsDrawerOpen,
   setIsSearchOverlayOpen, setPlaybackMode, verseCache
 } from './state.js';
@@ -208,11 +208,20 @@ function renderSearchResults(query) {
 }
 
 function selectReciter(reciter) {
+  const audioPlayer = document.getElementById('ayah-audio-player');
+  const wasPlaying = audioPlayer instanceof HTMLAudioElement && !audioPlayer.paused;
+
   stopAudio();
   setCurrentReciterId(reciter.id);
   saveSettingsToLocalStorage(reciter.id, currentTranslationId, playbackMode);
   updateReciterDisplay();
   closeSearchOverlay();
+
+  if (wasPlaying) {
+    playAyahAudio(currentAyahNumber).then(() => {
+      playAudio();
+    });
+  }
 }
 
 function selectTranslation(translation) {

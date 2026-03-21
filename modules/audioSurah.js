@@ -141,6 +141,7 @@ export function getCurrentSurahNumber() {
 export function onSurahAudioEnded() {
   currentTimings = null;
   currentSurahNumber = null;
+  lastReportedVerse = null;
 }
 
 /**
