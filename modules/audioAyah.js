@@ -10,7 +10,7 @@ export function setRecitersData(data) {
 /**
  * Builds the audio URL for a specific ayah using the current reciter's ayah-by-ayah source.
  */
-function getAyahAudioUrl(globalAyahNumber) {
+export function getAyahAudioUrl(globalAyahNumber) {
   const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(globalAyahNumber);
   const paddedSurah = padNumber(surahNumber, 3);
   const paddedAyah = padNumber(ayahWithinSurah, 3);
