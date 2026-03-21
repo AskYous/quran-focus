@@ -1433,3 +1433,120 @@ google-cast-launcher {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+/* Share Video Modal */
+.share-modal-content {
+  max-width: 400px;
+  text-align: left;
+}
+
+.share-modal-section.hidden {
+  display: none;
+}
+
+.share-modal-content h2 {
+  text-align: center;
+}
+
+.share-range-group {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.share-range-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.share-range-field label {
+  color: #888;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.share-select {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: #e0e0e0;
+  font-size: 14px;
+}
+
+.share-validation {
+  color: #ff6b6b;
+  font-size: 13px;
+  margin: 0 0 12px;
+  text-align: center;
+}
+
+.share-validation.hidden {
+  display: none;
+}
+
+.share-generate-btn {
+  width: 100%;
+  padding: 12px;
+  background: rgba(78, 110, 242, 0.8);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 8px;
+}
+
+.share-generate-btn:hover {
+  background: rgba(78, 110, 242, 1);
+}
+
+.share-generate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.share-cancel-btn {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.share-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.share-progress-bar-container {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  margin: 16px 0;
+  overflow: hidden;
+}
+
+.share-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: rgba(78, 110, 242, 0.8);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+#share-progress-text {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+}
