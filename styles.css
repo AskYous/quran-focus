@@ -864,6 +864,75 @@ p, h1, h2, h3, h4, h5, h6, span, label {
   /* margin-top: 1.5rem; */
 }
 
+/* Audio Status Indicator */
+.audio-status {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0.75rem;
+  height: 20px;
+  transition: opacity 0.3s ease;
+}
+
+.audio-status.hidden {
+  display: none;
+}
+
+.audio-status-loading,
+.audio-status-playing,
+.audio-status-paused {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: rgba(190, 215, 255, 0.7);
+}
+
+.audio-status.loading .audio-status-loading,
+.audio-status.playing .audio-status-playing,
+.audio-status.paused .audio-status-paused {
+  display: flex;
+}
+
+/* Loading spinner */
+.audio-status-loading .spinner {
+  width: 18px;
+  height: 18px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Playing equalizer bars */
+.audio-status-playing {
+  gap: 2px;
+  height: 16px;
+  align-items: flex-end;
+}
+
+.eq-bar {
+  display: inline-block;
+  width: 3px;
+  min-height: 2px;
+  height: 2px;
+  background: rgba(190, 215, 255, 0.7);
+  border-radius: 1px;
+  transition: height 0.08s ease-out;
+}
+
+@keyframes eqFallback {
+  0% { height: 3px; }
+  100% { height: 14px; }
+}
+
+/* Paused play icon */
+.audio-status-paused svg {
+  width: 14px;
+  height: 14px;
+  opacity: 0.5;
+}
+
 /* Top Settings Bar */
 #top-settings-bar {
   position: fixed;
@@ -1205,6 +1274,12 @@ google-cast-launcher {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+.drawer-hint {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
 }
 .drawer-select-btn {
   display: flex;

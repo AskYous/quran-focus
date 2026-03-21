@@ -1,6 +1,6 @@
 import { loadVerse } from '../script.js'; // Needed for handleAyahChange
 import { trackPageHidden, trackSelection } from './analytics.js'; // Import analytics tracking
-import { togglePlayPause, updatePlayPauseButton } from './audio.js';
+import { setAudioStatus, togglePlayPause, updatePlayPauseButton } from './audio.js';
 import { onSurahAudioEnded } from './audioSurah.js';
 import { navigate } from './navigation.js';
 import { quranData } from './quranData.js';
@@ -211,6 +211,7 @@ export function setupEventListeners() {
     audioElement.addEventListener('ended', () => {
       console.log('Audio ended');
       updatePlayPauseButton(true);
+      setAudioStatus('hidden');
 
       if (playbackMode === 'flowing') {
         // Surah finished — advance to next surah

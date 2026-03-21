@@ -15,7 +15,7 @@ import {
   verseCache,
   wasPlayingBeforeNavigation
 } from './modules/state.js';
-import { displayVerse } from './modules/ui.js';
+import { displayVerse, populateAyahSelect } from './modules/ui.js';
 import { calculateGlobalAyahNumber, calculateSurahAndAyah, saveSelectionsToLocalStorage } from './modules/utils.js';
 
 // Initialize the global callback for the Cast SDK
@@ -64,9 +64,7 @@ export async function loadVerse(surahNumber, ayahNumber) {
   const ayahSelect = document.getElementById('ayah-select');
   if (surahSelect instanceof HTMLSelectElement && surahSelect.value !== String(sNum)) {
     surahSelect.value = String(sNum);
-    // Note: If surah changed programmatically, ayah dropdown needs repopulation.
-    // This is handled by `handleSurahChange`, but direct calls to `loadVerse` might bypass it.
-    // Consider adding `populateAyahSelect(sNum)` here if needed for robustness.
+    populateAyahSelect(sNum);
   }
   if (ayahSelect instanceof HTMLSelectElement) {
     const optionExists = Array.from(ayahSelect.options).some(opt => opt.value === String(aNum));

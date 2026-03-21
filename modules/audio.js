@@ -45,6 +45,140 @@ export function updatePlayPauseButton(showPlay) {
     playIcon.style.display = showPlay ? 'block' : 'none';
     pauseIcon.style.display = showPlay ? 'none' : 'block';
   }
+
+  // Don't override loading state from play/pause button updates
+  if (!isAudioLoading) {
+    setAudioStatus(showPlay ? 'paused' : 'playing');
+  }
+}
+
+let isAudioLoading = false;
+
+// Web Audio API analyser for visualizer
+let audioContext = null;
+let analyser = null;
+let sourceNode = null;
+let animationFrameId = null;
+
+let analyserFailed = false;
+
+function ensureAnalyser() {
+  if (analyserFailed) return;
+  const audioPlayer = document.getElementById('ayah-audio-player');
+  if (!(audioPlayer instanceof HTMLAudioElement)) return;
+  if (sourceNode) return; // already connected
+
+  try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 64;
+    sourceNode = audioContext.createMediaElementSource(audioPlayer);
+    sourceNode.connect(analyser);
+    analyser.connect(audioContext.destination);
+  } catch (e) {
+    console.warn('Web Audio analyser not available, using fallback animation');
+    analyserFailed = true;
+    analyser = null;
+  }
+}
+
+function startVisualizer() {
+  const bars = document.querySelectorAll('.eq-bar');
+  if (!bars.length) return;
+
+  // Fallback: CSS-driven animation if analyser unavailable or CORS blocks frequency data
+  if (!analyser) {
+    useFallbackAnimation(bars);
+    return;
+  }
+
+  if (audioContext?.state === 'suspended') audioContext.resume();
+
+  const bufferLength = analyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+  const bandIndices = [1, 3, 5, 8, 12];
+  let silentFrames = 0;
+
+  function draw() {
+    analyser.getByteFrequencyData(dataArray);
+
+    // Check if analyser is producing data (CORS may block it)
+    const sum = dataArray.reduce((a, b) => a + b, 0);
+    if (sum === 0) {
+      silentFrames++;
+      if (silentFrames > 30) {
+        // ~0.5s of silence while playing → CORS likely blocking, switch to fallback
+        useFallbackAnimation(bars);
+        return;
+      }
+    } else {
+      silentFrames = 0;
+    }
+
+    bars.forEach((bar, i) => {
+      const idx = bandIndices[Math.min(i, bandIndices.length - 1)];
+      const value = idx < bufferLength ? dataArray[idx] : 0;
+      const height = 2 + (value / 255) * 14;
+      bar.style.height = `${height}px`;
+    });
+
+    animationFrameId = requestAnimationFrame(draw);
+  }
+
+  cancelAnimationFrame(animationFrameId);
+  draw();
+}
+
+function useFallbackAnimation(bars) {
+  cancelAnimationFrame(animationFrameId);
+  animationFrameId = null;
+  // Apply CSS animation as fallback
+  const delays = [0, 0.15, 0.3, 0.15, 0];
+  bars.forEach((bar, i) => {
+    bar.style.height = '';
+    bar.style.animation = `eqFallback 0.8s ${delays[i]}s ease-in-out infinite alternate`;
+  });
+}
+
+function stopVisualizer() {
+  cancelAnimationFrame(animationFrameId);
+  animationFrameId = null;
+
+  const bars = document.querySelectorAll('.eq-bar');
+  bars.forEach(bar => {
+    bar.style.height = '2px';
+    bar.style.animation = '';
+  });
+}
+
+/**
+ * Sets the audio status indicator state.
+ * @param {'loading' | 'playing' | 'paused' | 'hidden'} state
+ */
+export function setAudioStatus(state) {
+  const el = document.getElementById('audio-status');
+  if (!el) return;
+
+  if (state === 'loading') {
+    isAudioLoading = true;
+  } else {
+    isAudioLoading = false;
+  }
+
+  el.classList.remove('hidden', 'loading', 'playing', 'paused');
+
+  if (state === 'hidden') {
+    el.classList.add('hidden');
+    stopVisualizer();
+  } else {
+    el.classList.add(state);
+    if (state === 'playing') {
+      ensureAnalyser();
+      startVisualizer();
+    } else {
+      stopVisualizer();
+    }
+  }
 }
 
 /**
@@ -85,23 +219,29 @@ export function togglePlayPause() {
   const audioPlayer = document.getElementById('ayah-audio-player');
   if (!(audioPlayer instanceof HTMLAudioElement)) return;
 
+  if (isAudioLoading) return; // Prevent clicks while loading
+
   if (audioPlayer.paused) {
     if (!audioPlayer.src || audioPlayer.src === window.location.href || audioPlayer.src === '') {
       console.log("No valid audio source, loading current ayah audio on demand.");
 
       const arabicTextElement = document.getElementById('arabic-text');
       if (!arabicTextElement || !arabicTextElement.textContent) {
+        setAudioStatus('loading');
         loadAndDisplayAyah(currentAyahNumber).then(() => {
           triggerPlayFeedbackAnimation();
-        }).catch(err => console.error("Error loading ayah on toggle play:", err));
+        }).catch(err => {
+          console.error("Error loading ayah on toggle play:", err);
+          setAudioStatus('hidden');
+        });
       } else {
         triggerPlayFeedbackAnimation();
-        updatePlayPauseButton(false);
+        setAudioStatus('loading');
         playAyahAudio(currentAyahNumber).then(() => {
           playAudio();
         }).catch(err => {
           console.error("Error loading audio on demand:", err);
-          updatePlayPauseButton(true);
+          setAudioStatus('paused');
         });
       }
     } else {
@@ -147,6 +287,7 @@ export function playAudio() {
   if (audioPlayer.readyState >= 3) {
     doPlay();
   } else {
+    setAudioStatus('loading');
     audioPlayer.addEventListener('canplay', doPlay, { once: true });
     setTimeout(() => {
       if (audioPlayer.paused) {
@@ -182,4 +323,5 @@ export function stopAudio() {
     setWasPlayingBeforeNavigation(false);
   }
   onSurahAudioEnded();
+  setAudioStatus('hidden');
 }

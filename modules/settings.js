@@ -1,4 +1,4 @@
-import { initAudio, playAudio, playAyahAudio, stopAudio } from './audio.js';
+import { initAudio, playAudio, playAyahAudio, setAudioStatus, stopAudio } from './audio.js';
 import { fuzzySearch } from './search.js';
 import {
   currentAyahNumber, currentReciterId, currentTranslationId, playbackMode,
@@ -104,6 +104,13 @@ function updatePlaybackModeUI() {
   const flowingBtn = document.getElementById('mode-flowing');
   if (ayahBtn) ayahBtn.classList.toggle('active', playbackMode === 'ayah');
   if (flowingBtn) flowingBtn.classList.toggle('active', playbackMode === 'flowing');
+
+  const hint = document.getElementById('playback-mode-hint');
+  if (hint) {
+    hint.textContent = playbackMode === 'flowing'
+      ? 'Plays the full surah continuously, advancing ayahs as the reciter reads.'
+      : 'Plays one ayah at a time, then advances to the next.';
+  }
 }
 
 function openDrawer() {
@@ -218,8 +225,11 @@ function selectReciter(reciter) {
   closeSearchOverlay();
 
   if (wasPlaying) {
+    setAudioStatus('loading');
     playAyahAudio(currentAyahNumber).then(() => {
       playAudio();
+    }).catch(() => {
+      setAudioStatus('hidden');
     });
   }
 }
