@@ -1,5 +1,6 @@
 import { initAudio, playAudio, playAyahAudio, setAudioStatus, stopAudio } from './audio.js';
 import { fuzzySearch } from './search.js';
+import { initShare } from './share.js';
 import {
   currentAyahNumber, currentReciterId, currentTranslationId, playbackMode,
   setCurrentReciterId, setCurrentTranslationId, setIsDrawerOpen,
@@ -35,6 +36,9 @@ export async function initSettings() {
 
   // Initialize audio with reciters data
   initAudio(recitersData);
+
+  // Initialize share module
+  initShare(recitersData);
 
   // Update UI to reflect current settings
   updateReciterDisplay();
@@ -328,8 +332,10 @@ function setupDrawerListeners() {
 export function isSettingsUIOpen() {
   const drawer = document.getElementById('settings-drawer');
   const overlay = document.getElementById('search-overlay');
+  const shareModal = document.getElementById('share-modal');
   return (drawer && drawer.classList.contains('visible')) ||
-         (overlay && overlay.classList.contains('visible'));
+         (overlay && overlay.classList.contains('visible')) ||
+         (shareModal && !shareModal.classList.contains('hidden'));
 }
 
 /**
