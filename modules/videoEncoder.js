@@ -51,11 +51,13 @@ export async function createEncoder({ width, height, fps, sampleRate }) {
   });
 
   videoEncoder.configure({
-    codec: 'avc1.42001f',
+    codec: 'avc1.640028',
     width,
     height,
-    bitrate: 2_000_000,
-    framerate: fps
+    bitrate: 1_500_000,
+    framerate: fps,
+    hardwareAcceleration: 'prefer-hardware',
+    latencyMode: 'quality'
   });
 
   const audioEncoder = new AudioEncoder({

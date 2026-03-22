@@ -46,8 +46,9 @@ export function updatePlayPauseButton(showPlay) {
     pauseIcon.style.display = showPlay ? 'none' : 'block';
   }
 
-  // Don't override loading state from play/pause button updates
-  if (!isAudioLoading) {
+  // When audio starts playing, always update (clears loading state).
+  // When paused, don't override loading state from intermediate calls.
+  if (!showPlay || !isAudioLoading) {
     setAudioStatus(showPlay ? 'paused' : 'playing');
   }
 }

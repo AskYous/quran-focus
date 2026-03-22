@@ -4,16 +4,13 @@
 import { fetchQuranVerse } from './api.js';
 import { getAyahAudioUrl } from './audioAyah.js';
 import { quranData } from './quranData.js';
-import {
-  currentAyahNumber, currentReciterId
-} from './state.js';
-import { fetchVerseTimings } from './timingApi.js';
+import { currentAyahNumber } from './state.js';
 import { calculateGlobalAyahNumber, calculateSurahAndAyah } from './utils.js';
 import { createEncoder, isVideoEncodingSupported } from './videoEncoder.js';
 import { computeLayout, ensureFontsLoaded, renderAyahFrames } from './videoRenderer.js';
 
 const MAX_RANGE = 30;
-const FPS = 30;
+const FPS = 15;
 
 let recitersData = [];
 let currentGeneration = null; // for cancellation
@@ -30,10 +27,6 @@ function getCurrentSurahInfo() {
   const { surahNumber, ayahWithinSurah } = calculateSurahAndAyah(currentAyahNumber);
   const surah = quranData.find(s => s.number === surahNumber);
   return { surahNumber, ayahWithinSurah, surahName: surah?.name || '', ayahCount: surah?.ayahCount || 1 };
-}
-
-function getReciter() {
-  return recitersData.find(r => r.id === currentReciterId) || null;
 }
 
 // ──────────────────────────────
@@ -166,72 +159,24 @@ function switchToSetup() {
 
 /**
  * Fetches and decodes audio for the selected range.
+ * Always uses individual ayah audio files — fast parallel downloads, works for all reciters.
  * Returns { combinedPcm: Float32Array, sampleRate: number, perAyahDurations: number[] }
  */
 async function fetchAudioForRange(surahNumber, fromAyah, toAyah) {
-  const reciter = getReciter();
-  const hasFlowing = !!reciter?.quranicAudioRecitationId;
-
-  if (hasFlowing) {
-    return fetchFlowingAudio(surahNumber, fromAyah, toAyah, reciter.quranicAudioRecitationId);
-  } else {
-    return fetchAyahByAyahAudio(surahNumber, fromAyah, toAyah);
-  }
-}
-
-async function fetchFlowingAudio(surahNumber, fromAyah, toAyah, recitationId) {
-  const timingData = await fetchVerseTimings(recitationId, surahNumber);
-  if (!timingData) throw new Error('Could not fetch verse timings');
-
-  // Fetch and decode full surah audio
-  const response = await fetch(timingData.audioUrl);
-  if (!response.ok) throw new Error('Failed to fetch surah audio');
-  const arrayBuffer = await response.arrayBuffer();
-
   const audioCtx = new AudioContext();
-  const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-  const sampleRate = audioBuffer.sampleRate;
 
-  // Find timing boundaries for our range
-  const fromTiming = timingData.timings.find(t => t.verseKey === `${surahNumber}:${fromAyah}`);
-  const toTiming = timingData.timings.find(t => t.verseKey === `${surahNumber}:${toAyah}`);
-  if (!fromTiming || !toTiming) throw new Error('Timing data not found for selected range');
+  // Fetch all ayahs in parallel
+  const ayahNumbers = [];
+  for (let a = fromAyah; a <= toAyah; a++) ayahNumbers.push(a);
 
-  const startSample = Math.floor((fromTiming.timestampFrom / 1000) * sampleRate);
-  const endSample = Math.floor((toTiming.timestampTo / 1000) * sampleRate);
-
-  // Extract mono PCM for the range
-  const channelData = audioBuffer.getChannelData(0); // take first channel
-  const combinedPcm = channelData.slice(startSample, endSample);
-
-  // Per-ayah durations from timing data
-  const perAyahDurations = [];
-  for (let ayah = fromAyah; ayah <= toAyah; ayah++) {
-    const t = timingData.timings.find(t => t.verseKey === `${surahNumber}:${ayah}`);
-    if (t) {
-      perAyahDurations.push((t.timestampTo - t.timestampFrom) / 1000);
-    } else {
-      perAyahDurations.push(3); // fallback
-    }
-  }
-
-  await audioCtx.close();
-  return { combinedPcm, sampleRate, perAyahDurations };
-}
-
-async function fetchAyahByAyahAudio(surahNumber, fromAyah, toAyah) {
-  const audioCtx = new AudioContext();
-  const buffers = [];
-
-  for (let ayah = fromAyah; ayah <= toAyah; ayah++) {
+  const buffers = await Promise.all(ayahNumbers.map(async (ayah) => {
     const globalAyah = calculateGlobalAyahNumber(surahNumber, ayah);
     const url = getAyahAudioUrl(globalAyah);
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Failed to fetch audio for ayah ${ayah}`);
     const arrayBuffer = await response.arrayBuffer();
-    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-    buffers.push(audioBuffer);
-  }
+    return audioCtx.decodeAudioData(arrayBuffer);
+  }));
 
   const sampleRate = buffers[0].sampleRate;
   const perAyahDurations = buffers.map(b => b.duration);
@@ -308,7 +253,7 @@ async function startGeneration() {
 
     // Step 4: Set up encoder
     showProgress('Initializing encoder...', 35);
-    const encoder = await createEncoder({ width: 1080, height: 1920, fps: FPS, sampleRate });
+    const encoder = await createEncoder({ width: 720, height: 1280, fps: FPS, sampleRate });
     generation.encoder = encoder;
     if (generation.cancelled) return;
 

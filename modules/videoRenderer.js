@@ -2,21 +2,21 @@
  * Video renderer module — draws verse text with word-by-word animation on a canvas.
  */
 
-const WIDTH = 1080;
-const HEIGHT = 1920;
+const WIDTH = 720;
+const HEIGHT = 1280;
 const BG_COLOR = '#0f111a';
-const ARABIC_FONT = '52px "Scheherazade New", "Amiri", serif';
-const TRANSLATION_FONT = '28px "Lato", sans-serif';
-const REFERENCE_FONT = '22px "Lato", sans-serif';
-const WATERMARK_FONT = '16px "Lato", sans-serif';
+const ARABIC_FONT = '48px "Scheherazade New", "Amiri", serif';
+const TRANSLATION_FONT = '26px "Lato", sans-serif';
+const REFERENCE_FONT = '18px "Lato", sans-serif';
+const WATERMARK_FONT = '14px "Lato", sans-serif';
 const TEXT_COLOR = '#ffffff';
 const TRANSLATION_COLOR = 'rgba(255, 255, 255, 0.6)';
 const REFERENCE_COLOR = 'rgba(255, 255, 255, 0.5)';
 const WATERMARK_COLOR = 'rgba(255, 255, 255, 0.2)';
-const MAX_TEXT_WIDTH = 920;
-const LINE_HEIGHT_ARABIC = 80;
-const LINE_HEIGHT_TRANSLATION = 40;
-const BLOCK_GAP = 50;
+const MAX_TEXT_WIDTH = 620;
+const LINE_HEIGHT_ARABIC = 74;
+const LINE_HEIGHT_TRANSLATION = 38;
+const BLOCK_GAP = 36;
 const FADE_DURATION = 0.3; // seconds
 
 /**
@@ -90,13 +90,12 @@ export function computeLayout(ctx, ayahData) {
 }
 
 /**
- * Draws a single frame of the ayah animation.
+ * Draws a single frame of the ayah — all text shown at once.
  * @param {CanvasRenderingContext2D} ctx
  * @param {object} layout - From computeLayout
- * @param {number} revealedWordCount - How many words to show (arabic first, then translation)
  * @param {number} opacity - Global opacity for fade in/out (0-1)
  */
-export function drawFrame(ctx, layout, revealedWordCount, opacity) {
+export function drawFrame(ctx, layout, opacity) {
   // Clear and draw background
   ctx.globalAlpha = 1;
   ctx.fillStyle = BG_COLOR;
@@ -110,20 +109,9 @@ export function drawFrame(ctx, layout, revealedWordCount, opacity) {
   ctx.textAlign = 'center';
   ctx.direction = 'rtl';
 
-  let wordIndex = 0;
   let y = layout.startY;
-
   for (const line of layout.arabicLines) {
-    const visibleWords = [];
-    for (const word of line) {
-      if (wordIndex < revealedWordCount) {
-        visibleWords.push(word);
-      }
-      wordIndex++;
-    }
-    if (visibleWords.length > 0) {
-      ctx.fillText(visibleWords.join(' '), WIDTH / 2, y);
-    }
+    ctx.fillText(line.join(' '), WIDTH / 2, y);
     y += LINE_HEIGHT_ARABIC;
   }
 
@@ -134,24 +122,12 @@ export function drawFrame(ctx, layout, revealedWordCount, opacity) {
   ctx.direction = layout.translationDirection === 'rtl' ? 'rtl' : 'ltr';
   ctx.textAlign = 'center';
 
-  const arabicWordCount = layout.arabicWords.length;
-  let transWordIndex = 0;
-
   for (const line of layout.translationLines) {
-    const visibleWords = [];
-    for (const word of line) {
-      if (arabicWordCount + transWordIndex < revealedWordCount) {
-        visibleWords.push(word);
-      }
-      transWordIndex++;
-    }
-    if (visibleWords.length > 0) {
-      ctx.fillText(visibleWords.join(' '), WIDTH / 2, y);
-    }
+    ctx.fillText(line.join(' '), WIDTH / 2, y);
     y += LINE_HEIGHT_TRANSLATION;
   }
 
-  // Draw ayah reference (always visible during ayah)
+  // Draw ayah reference
   ctx.font = REFERENCE_FONT;
   ctx.fillStyle = REFERENCE_COLOR;
   ctx.direction = 'ltr';
@@ -181,13 +157,10 @@ export function drawFrame(ctx, layout, revealedWordCount, opacity) {
 export async function renderAyahFrames(ctx, layout, audioDuration, fps, encoder, canvas) {
   const totalFrames = Math.round(audioDuration * fps);
   const fadeFrames = Math.round(FADE_DURATION * fps);
-  const availableTime = Math.max(audioDuration - FADE_DURATION * 2, 0.5);
-  const revealInterval = availableTime / layout.totalWords; // seconds per word
   let framesRendered = 0;
+  let lastOpacity = -1;
 
   for (let f = 0; f < totalFrames; f++) {
-    const timeInAyah = f / fps; // current time in seconds
-
     // Calculate opacity for fade in/out
     let opacity = 1;
     if (f < fadeFrames) {
@@ -196,15 +169,14 @@ export async function renderAyahFrames(ctx, layout, audioDuration, fps, encoder,
       opacity = (totalFrames - f) / fadeFrames;
     }
 
-    // Calculate how many words to reveal
-    const timeSinceFadeIn = Math.max(timeInAyah - FADE_DURATION, 0);
-    const revealedWords = Math.min(
-      Math.floor(timeSinceFadeIn / revealInterval) + 1,
-      layout.totalWords
-    );
+    // Only redraw canvas when opacity changes (skip during static hold)
+    if (opacity !== lastOpacity) {
+      drawFrame(ctx, layout, opacity);
+      lastOpacity = opacity;
+    }
 
-    drawFrame(ctx, layout, revealedWords, opacity);
-    await encoder.addFrame(canvas); // async — handles backpressure + yields to main thread
+    // Feed the same canvas to encoder (unchanged pixels = tiny encoded frame)
+    await encoder.addFrame(canvas);
     framesRendered++;
   }
 
@@ -215,7 +187,7 @@ export async function renderAyahFrames(ctx, layout, audioDuration, fps, encoder,
  * Ensures required fonts are loaded for canvas rendering.
  */
 export async function ensureFontsLoaded() {
-  await document.fonts.load('52px "Scheherazade New"');
-  await document.fonts.load('28px "Lato"');
+  await document.fonts.load('48px "Scheherazade New"');
+  await document.fonts.load('26px "Lato"');
   await document.fonts.ready;
 }
