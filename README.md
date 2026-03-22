@@ -2,6 +2,10 @@
 
 A beautiful, minimalist web application for focused Quran reading and listening. Built with pure HTML, CSS, and JavaScript, this project is vibe-coded to create a serene and immersive experience for Quranic contemplation.
 
+## 🎯 Vision
+
+Quran Focus is built on one core principle: **the user should focus on the Quran, not the app.** Every design decision serves this goal. The interface should fade into the background so the reader's attention stays on the words of Allah. Features that add visual clutter, draw the eye away from the ayah, or make the app feel "busy" go against this vision — even if they're technically useful. Minimalism here isn't an aesthetic choice; it's a commitment to purpose.
+
 ## 🌟 Features
 
 - **Minimalist Design**: Clean, distraction-free interface for focused reading
