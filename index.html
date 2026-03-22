@@ -84,20 +84,17 @@
                 </div>
             </div>
 
-            <!-- Fullscreen Toggle Button -->
-            <button id="fullscreen-toggle" class="settings-button" title="Toggle Fullscreen">
-                <svg class="fullscreen-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-                </svg>
-                <svg class="exit-fullscreen-icon" style="display: none;" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+            <!-- Share Video Button -->
+            <button id="share-video-btn" class="settings-button" title="Share Video">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
                 </svg>
             </button>
 
-            <!-- Show Onboarding Guide Button -->
-            <button id="show-onboarding" class="settings-button" title="Show Guide">
-                <svg viewBox="0 0 24 24" fill="currentColor" >
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+            <!-- Settings Drawer Toggle -->
+            <button id="settings-drawer-toggle" class="settings-button" title="Settings">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
                 </svg>
             </button>
 
@@ -114,6 +111,25 @@
             <div id="arabic-text" class="arabic-text"></div>
             <div id="translation-text" class="translation-text"></div>
             <div id="ayah-reference" class="ayah-reference"></div>
+            <div id="audio-status" class="audio-status hidden">
+                <div class="audio-status-loading">
+                    <svg class="spinner" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="31.4 31.4" />
+                    </svg>
+                </div>
+                <div class="audio-status-playing">
+                    <span class="eq-bar"></span>
+                    <span class="eq-bar"></span>
+                    <span class="eq-bar"></span>
+                    <span class="eq-bar"></span>
+                    <span class="eq-bar"></span>
+                </div>
+                <div class="audio-status-paused">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -122,7 +138,7 @@
     <div class="ambient-glow glow-2"></div>
 
     <!-- Hidden Audio Player (Controlled via taps) -->
-    <audio id="ayah-audio-player" preload="metadata" style="display: none;"></audio>
+    <audio id="ayah-audio-player" crossorigin="anonymous" preload="metadata" style="display: none;"></audio>
 
     <!-- External JavaScript -->
     <script type="module" src="script.js"></script>
@@ -147,6 +163,60 @@
         }).catch(err => console.error("Font loading error:", err));
       }
     </script>
+
+    <!-- Settings Drawer -->
+    <div id="settings-drawer-backdrop" class="drawer-backdrop hidden"></div>
+    <div id="settings-drawer" class="settings-drawer hidden">
+        <div class="drawer-header">
+            <h2 class="drawer-title">Settings</h2>
+            <button id="drawer-close" class="drawer-close-btn" title="Close">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+            </button>
+        </div>
+        <div class="drawer-body">
+            <div class="drawer-section">
+                <label class="drawer-label">Reciter</label>
+                <button id="reciter-select-btn" class="drawer-select-btn">
+                    <span id="current-reciter-name">Khalefa Al-Tunaiji</span>
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+                </button>
+            </div>
+            <div id="playback-mode-section" class="drawer-section hidden">
+                <label class="drawer-label">Playback Mode</label>
+                <div class="toggle-group">
+                    <button id="mode-ayah" class="toggle-btn active">Ayah-by-Ayah</button>
+                    <button id="mode-flowing" class="toggle-btn">Flowing</button>
+                </div>
+                <p id="playback-mode-hint" class="drawer-hint"></p>
+            </div>
+            <div class="drawer-section">
+                <label class="drawer-label">Translation</label>
+                <button id="translation-select-btn" class="drawer-select-btn">
+                    <span id="current-translation-name">Hilali & Khan</span>
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+                </button>
+            </div>
+            <div class="drawer-section">
+                <button id="fullscreen-toggle-drawer" class="drawer-action-btn">Toggle Fullscreen</button>
+            </div>
+            <div class="drawer-section">
+                <button id="show-onboarding-drawer" class="drawer-action-btn">Show Guide</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Overlay -->
+    <div id="search-overlay" class="search-overlay hidden">
+        <div class="search-overlay-header">
+            <button id="search-overlay-back" class="search-back-btn" title="Back">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            </button>
+            <input id="search-input" type="text" class="search-input" placeholder="Search..." autocomplete="off" />
+        </div>
+        <div id="search-results" class="search-results"></div>
+    </div>
 
     <!-- Onboarding Modal -->
     <div id="onboarding-modal" class="modal-overlay hidden">
@@ -189,5 +259,37 @@
             </div>
         </div>
     </div>
+
+    <!-- Share Video Modal -->
+    <div id="share-modal" class="modal-overlay hidden">
+        <div class="modal-content share-modal-content">
+            <div id="share-modal-setup" class="share-modal-section">
+                <h2 id="share-modal-title">Share Video</h2>
+                <div class="share-range-group">
+                    <div class="share-range-field">
+                        <label for="share-from-ayah">From Ayah</label>
+                        <select id="share-from-ayah" class="form-select share-select"></select>
+                    </div>
+                    <div class="share-range-field">
+                        <label for="share-to-ayah">To Ayah</label>
+                        <select id="share-to-ayah" class="form-select share-select"></select>
+                    </div>
+                </div>
+                <p id="share-validation-msg" class="share-validation hidden"></p>
+                <button id="share-generate-btn" class="share-generate-btn">Generate Video</button>
+                <button id="share-close-btn" class="share-cancel-btn">Close</button>
+            </div>
+            <div id="share-modal-progress" class="share-modal-section hidden">
+                <h2>Generating Video...</h2>
+                <p id="share-progress-text">Preparing...</p>
+                <div class="share-progress-bar-container">
+                    <div id="share-progress-bar" class="share-progress-bar"></div>
+                </div>
+                <button id="share-cancel-generate-btn" class="share-cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <!-- Hidden canvas for video rendering -->
+    <canvas id="share-video-canvas" width="720" height="1280" style="display:none;"></canvas>
 </body>
 </html> 

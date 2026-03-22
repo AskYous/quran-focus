@@ -1,8 +1,13 @@
-export async function fetchQuranVerse(surahNumber, ayahNumber) {
-  console.log(`Fetching verse data for Surah ${surahNumber}, Ayah ${ayahNumber}`);
+import { currentTranslationId } from './state.js';
+
+export async function fetchQuranVerse(surahNumber, ayahNumber, translationId = null) {
+  const edition = translationId || currentTranslationId;
+  console.log(`Fetching verse data for Surah ${surahNumber}, Ayah ${ayahNumber}, Translation: ${edition}`);
 
   try {
-    const response = await fetch(`https://api.alquran.cloud/v1/ayah/${surahNumber}:${ayahNumber}/editions/quran-simple,en.hilali`);
+    const response = await fetch(
+      `https://api.alquran.cloud/v1/ayah/${surahNumber}:${ayahNumber}/editions/quran-simple,${edition}`
+    );
 
     if (!response.ok) {
       throw new Error(`API returned status: ${response.status}`);
@@ -10,10 +15,10 @@ export async function fetchQuranVerse(surahNumber, ayahNumber) {
 
     const data = await response.json();
 
-    // Extract the verse data
     const verseData = {
       arabic: data.data[0]?.text || 'Arabic text not available',
-      english: data.data[1]?.text || 'Translation not available',
+      translation: data.data[1]?.text || 'Translation not available',
+      translationDirection: data.data[1]?.direction || 'ltr',
       meta: {
         juz: data.data[0]?.juz || 0,
         page: data.data[0]?.page || 0,
@@ -26,4 +31,4 @@ export async function fetchQuranVerse(surahNumber, ayahNumber) {
     console.error("Error in fetchQuranVerse:", error);
     return { error: error.message };
   }
-} 
+}

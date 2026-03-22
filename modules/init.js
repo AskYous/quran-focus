@@ -4,6 +4,7 @@ import { handleSurahChange, setupEventListeners } from './events.js';
 import { setupFullscreenToggle } from './fullscreen.js';
 import { initializeCacheCleanup } from './navigation.js';
 import { quranData } from './quranData.js';
+import { initSettings, silentDataUpdate } from './settings.js';
 import { populateAyahSelect, populateSurahDropdown, resetSettingsBarHideTimeout } from './ui.js';
 import { loadSelectionsFromLocalStorage } from './utils.js';
 
@@ -98,7 +99,7 @@ function preloadFonts() {
 /**
  * Main application initialization function.
  */
-export function initializeApp() {
+export async function initializeApp() {
   console.log("Initializing Quran Focus App...");
 
   // Initialize Mixpanel analytics
@@ -135,10 +136,17 @@ export function initializeApp() {
   resetSettingsBarHideTimeout(3500); // Initial hide for settings bar
   preloadFonts(); // Start preloading fonts
 
+  // Initialize settings (loads reciters/translations, restores persisted settings)
+  await initSettings();
+  console.log('Settings initialized');
+
   // Populate Surah dropdown, then set defaults once populated
   populateSurahDropdown();
   // Wait slightly longer than the dropdown population animation before setting defaults
   setTimeout(setDefaultSelections, quranData.length * 5 + 200);
+
+  // Trigger silent data update in background (non-blocking)
+  setTimeout(() => silentDataUpdate(), 5000);
 
   console.log("App initialization sequence complete.");
 }

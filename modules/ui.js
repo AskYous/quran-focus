@@ -211,11 +211,16 @@ export async function displayVerse(surahNumber, ayahNumber, verseData) {
     arabicTextElement.appendChild(span);
   });
 
-  // Process English text
-  const englishWords = verseData.english.split(' ');
-  englishWords.forEach((word, index) => {
+  // RTL support for translation text
+  const translationDirection = verseData.translationDirection || 'ltr';
+  translationTextElement.setAttribute('dir', translationDirection);
+  translationTextElement.style.textAlign = translationDirection === 'rtl' ? 'right' : 'center';
+
+  // Process translation text
+  const translationWords = verseData.translation.split(' ');
+  translationWords.forEach((word, index) => {
     const span = document.createElement('span');
-    span.textContent = word + (index < englishWords.length - 1 ? ' ' : '');
+    span.textContent = word + (index < translationWords.length - 1 ? ' ' : '');
     span.className = 'reveal-word english-word';
     span.style.animationDelay = `${index * englishWordDelay}s`;
     span.style.animationDuration = animationDuration;

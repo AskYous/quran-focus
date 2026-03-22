@@ -29,3 +29,20 @@ export function setWasPlayingBeforeNavigation(value) { wasPlayingBeforeNavigatio
 export function setCastContext(context) { castContext = context; }
 // export function setCastSession(session) { castSession = session; }
 // export function setIsCasting(casting) { isCasting = casting; }
+
+// Settings state
+export let currentReciterId = 'khalefa_al_tunaiji_64kbps';
+export let currentTranslationId = 'en.hilali';
+export let playbackMode = 'ayah'; // 'ayah' or 'flowing'
+export let isDrawerOpen = false;
+export let isSearchOverlayOpen = false;
+
+export function setCurrentReciterId(id) { currentReciterId = id; }
+export function setCurrentTranslationId(id) { currentTranslationId = id; }
+export function setPlaybackMode(mode) {
+  if (mode === 'ayah' || mode === 'flowing') {
+    playbackMode = mode;
+  }
+}
+export function setIsDrawerOpen(open) { isDrawerOpen = open; }
+export function setIsSearchOverlayOpen(open) { isSearchOverlayOpen = open; }

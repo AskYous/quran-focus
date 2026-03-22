@@ -1,12 +1,14 @@
 /// <reference lib="webworker"/>
 
-const CACHE_NAME = 'quran-focus-cache-v1';
+const CACHE_NAME = 'quran-focus-cache-v2';
 const urlsToCache = [
   '/',
   '/index.html',
   '/styles.css',
   '/script.js',
   '/particles.json',
+  '/data/reciters.json',
+  '/data/translations.json',
   // Add paths to icons if needed for offline use
   '/icons/android-chrome-192x192.png',
   '/icons/android-chrome-512x512.png',

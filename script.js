@@ -1,21 +1,22 @@
 // @ts-nocheck
 // Core Imports from Modules
 import { fetchQuranVerse } from './modules/api.js';
-import { playAudio, playAyahAudio, togglePlayPause, updatePlayPauseButton } from './modules/audio.js';
+import { playAudio, playAyahAudio, setupFlowingModeListener, togglePlayPause, updatePlayPauseButton, getCurrentSurahNumber, seekToAyahInSurah, setOnAyahChangeCallback } from './modules/audio.js';
 // import { castMedia, initializeGlobalCastApiCallback } from './modules/cast.js';
-import { trackNavigation, trackVerseLoad } from './modules/analytics.js'; // Import analytics tracking
+import { trackNavigation, trackOnboarding, trackVerseLoad } from './modules/analytics.js'; // Import analytics tracking
 import { initializeApp } from './modules/init.js';
 import { limitCacheSize } from './modules/navigation.js';
 // Preloading removed
 import {
-  // castSession,
   currentAyahNumber,
+  currentTranslationId,
+  playbackMode,
   setCurrentAyahNumber,
   verseCache,
   wasPlayingBeforeNavigation
 } from './modules/state.js';
-import { displayVerse } from './modules/ui.js';
-import { calculateGlobalAyahNumber, calculateSurahAndAyah } from './modules/utils.js';
+import { displayVerse, populateAyahSelect } from './modules/ui.js';
+import { calculateGlobalAyahNumber, calculateSurahAndAyah, saveSelectionsToLocalStorage } from './modules/utils.js';
 
 // Initialize the global callback for the Cast SDK
 // @ts-ignore - This function is globally defined by the Cast SDK loader script
@@ -63,9 +64,7 @@ export async function loadVerse(surahNumber, ayahNumber) {
   const ayahSelect = document.getElementById('ayah-select');
   if (surahSelect instanceof HTMLSelectElement && surahSelect.value !== String(sNum)) {
     surahSelect.value = String(sNum);
-    // Note: If surah changed programmatically, ayah dropdown needs repopulation.
-    // This is handled by `handleSurahChange`, but direct calls to `loadVerse` might bypass it.
-    // Consider adding `populateAyahSelect(sNum)` here if needed for robustness.
+    populateAyahSelect(sNum);
   }
   if (ayahSelect instanceof HTMLSelectElement) {
     const optionExists = Array.from(ayahSelect.options).some(opt => opt.value === String(aNum));
@@ -78,8 +77,8 @@ export async function loadVerse(surahNumber, ayahNumber) {
     }
   }
 
-  // Generate cache key
-  const cacheKey = `${sNum}:${aNum}`;
+  // Generate cache key (includes translation for cache invalidation)
+  const cacheKey = `${sNum}:${aNum}:${currentTranslationId}`;
   let verseData;
 
   // Check for active Cast session - REMOVED
@@ -152,39 +151,44 @@ export async function loadVerse(surahNumber, ayahNumber) {
     }
   }
 
-  // If verse data is valid, proceed with display and conditionally load audio
+  // If verse data is valid, conditionally load audio
   if (verseData && !verseData.error) {
     try {
-      // 1. Display the verse text (which starts the animation)
-      await displayVerse(sNum, aNum, verseData);
-
-      // 2. Only load and play audio if user was previously playing
-      if (wasPlayingBeforeNavigation) {
-        console.log(`[Local] User was playing audio, loading and autoplaying.`);
-        const audioReadyPromise = playAyahAudio(globalAyahNumber);
-        await audioReadyPromise;
-        playAudio();
-      } else {
-        console.log(`[Local] User was not playing audio, skipping audio loading to save bandwidth.`);
-        updatePlayPauseButton(true); // Show play button
-        // Clear any previous audio source to prevent unintended loading
-        const audioPlayerElement = document.getElementById('ayah-audio-player');
-        if (audioPlayerElement instanceof HTMLAudioElement) {
-          audioPlayerElement.src = '';
+      // In flowing mode, if same surah is already playing, just seek — don't reload audio
+      let skipAudioLoad = false;
+      if (playbackMode === 'flowing' && wasPlayingBeforeNavigation) {
+        const loadedSurah = getCurrentSurahNumber();
+        if (loadedSurah === sNum) {
+          const audioPlayer = document.getElementById('ayah-audio-player');
+          if (audioPlayer instanceof HTMLAudioElement) {
+            seekToAyahInSurah(aNum, audioPlayer);
+            skipAudioLoad = true;
+          }
         }
       }
-      
-      // Preloading code removed
-      
+
+      if (!skipAudioLoad) {
+        if (wasPlayingBeforeNavigation) {
+          console.log(`[Local] User was playing audio, loading and autoplaying.`);
+          const audioReadyPromise = playAyahAudio(globalAyahNumber);
+          await audioReadyPromise;
+          playAudio();
+        } else {
+          console.log(`[Local] User was not playing audio, skipping audio loading to save bandwidth.`);
+          updatePlayPauseButton(true);
+          const audioPlayerElement = document.getElementById('ayah-audio-player');
+          if (audioPlayerElement instanceof HTMLAudioElement) {
+            audioPlayerElement.src = '';
+          }
+        }
+      }
     } catch (error) {
       console.error("[Local] Error handling audio playback:", error);
-      updatePlayPauseButton(true); // Ensure play button shown on error
+      updatePlayPauseButton(true);
     }
   } else {
-    updatePlayPauseButton(true); // Ensure play button shown on error
+    updatePlayPauseButton(true);
   }
-  
-  // Preloading code removed
 }
 
 // Preloading function removed
@@ -241,6 +245,40 @@ async function goToNextAyah() {
 document.addEventListener('DOMContentLoaded', () => {
   initializeApp(); // Call the main initialization function from the module
   initializeOnboarding(); // Initialize the onboarding experience
+  setupFlowingModeListener(); // Set up timeupdate listener for flowing mode
+
+  // Flowing mode: update display when audio crosses ayah boundaries
+  let lastFlowingAyahKey = null;
+  setOnAyahChangeCallback((surah, ayah) => {
+    const key = `${surah}:${ayah}`;
+    if (key !== lastFlowingAyahKey) {
+      lastFlowingAyahKey = key;
+      const globalAyah = calculateGlobalAyahNumber(surah, ayah);
+      setCurrentAyahNumber(globalAyah);
+
+      // Update dropdowns
+      const surahSelect = document.getElementById('surah-select');
+      const ayahSelect = document.getElementById('ayah-select');
+      if (surahSelect instanceof HTMLSelectElement) surahSelect.value = String(surah);
+      if (ayahSelect instanceof HTMLSelectElement) ayahSelect.value = String(ayah);
+
+      // Fetch and display verse text
+      const cacheKey = `${surah}:${ayah}:${currentTranslationId}`;
+      if (verseCache.has(cacheKey)) {
+        displayVerse(surah, ayah, verseCache.get(cacheKey));
+      } else {
+        fetchQuranVerse(surah, ayah).then(data => {
+          if (!data.error) {
+            verseCache.set(cacheKey, data);
+            limitCacheSize();
+            displayVerse(surah, ayah, data);
+          }
+        });
+      }
+
+      saveSelectionsToLocalStorage(surah, ayah);
+    }
+  });
 
   // --- Swipe Event Listeners ---
   // Attach listeners to the body for full-screen swipe detection
@@ -406,13 +444,12 @@ function initializeOnboarding() {
     showOnboardingModal(); // Use the new function to show the modal
   }
 
-  // Add listener for the 'Show Guide' button
+  // Show Guide button is now in the settings drawer (handled by settings.js)
+  // Keep legacy support if old button exists
   if (showGuideButton) {
     showGuideButton.addEventListener('click', () => {
-      showOnboardingModal(); // Show the modal when the button is clicked
+      showOnboardingModal();
     });
-  } else {
-    console.error("Show Onboarding button not found.");
   }
 }
 
